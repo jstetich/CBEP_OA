@@ -1,0 +1,267 @@
+---
+title: "Review, Cleaning and Reorganization of Casco Bay OA Data"
+author: Curtis C. Bohlen
+output:
+  github_document:
+    toc: true
+    fig_width: 7
+    fig_height: 5
+---
+
+<img
+    src="https://www.cascobayestuary.org/wp-content/uploads/2014/04/logo_sm.jpg"
+    style="position:absolute;top:10px;right:50px;" />
+
+
+# Load Libraries
+```{r load_libraries}
+library(tidyverse)
+library(readxl)
+library(CBEPgraphics)
+
+load_cbep_fonts()
+```
+
+# Load Data
+## Establish Folder Reference
+```{r folder_references}
+sibfldnm <- 'Original_Data'
+parent   <- dirname(getwd())
+sibling  <- file.path(parent,sibfldnm)
+
+```
+
+## Load data from identical excel spreadsheets
+This code retains only the median hourly values.
+```{r load_data, warning=FALSE}
+the_data <- list()
+for (yr in c(2015, 2016, 2017, 2018)) {
+  fn <- paste0('CascoBay_lvl3_',  yr ,'.xls')
+  fpath <- file.path(sibling,fn)
+  df <- read_excel(fpath, col_types = 'numeric',
+                   sheet = 'Data')[-1,] %>%  # dropping garbage second line
+  select(- contains('_min')) %>%
+  select(- contains('_mean')) %>%
+  select(- contains('_max')) %>%
+  select(- contains('_std'))
+  n <- names(df)
+  n <- sub('_median', '', n)
+  names(df) <- n
+  the_data <- append(the_data, list(df))  #  add datframe to a list of dataframes. 
+}
+```
+
+## Combine Data
+```{r combine_data}
+the_data <- bind_rows(the_data) %>%
+  select(-yyyymmdd, -Matlab_datenum, -FET_TEMP_CON) %>%
+  mutate(datetime = ISOdatetime(yyyy, mm, dd, hh,0,0, 'America/New_York')) %>%
+  mutate(doy = as.numeric(strftime(datetime, format = "%j")))
+```
+
+# Correct Errors
+In downstream analysis steps, We uncovered duplicate dates and times, but al lduiplicate rows lack data, specifically from January of 2016. We filter them out here.
+
+## Demonstrate the Problem
+```{r demonstration}
+the_data %>% select(datetime) %>% group_by(datetime) %>% summarize(n = n()) %>% filter(n>1) %>% arrange(datetime)
+```
+
+### Drop records that have no data
+```{r remove_dup_dates}
+the_data <-  the_data %>% filter(
+   ! (
+     is.na(SBE37_TEMP) &
+     is.na(SBE37_CON) &
+     is.na(SBE37_SALINITY) &
+     is.na(SAMICO2_TEMP) &
+     is.na(SAMI_CO2) &
+     is.na(Optode_O2) &
+     is.na(FET_PHINT) &
+     is.na(FET_PHEXT) &  
+     is.na(`omega-a`) &
+     is.na(`omega-c`) &
+     is.na(TA_calc) &    
+     is.na(DIC_calc)
+   )
+)
+
+```
+
+# Filtering out Bad PH Data
+Larry Harris (of the University of Maine) was a coauthor on a poster based on these data for the "Gulf of Maine 2050" conference, held in Portland, Maine in 2019.  He pointed out to his coauthors (including CBEP staff) that certain pH observations appear unreliable.   Many low pH values look suspect, especially in 2017. THese data do not match the QA/QC samples collected during periodic site visits.  Since QA/QC samples are infrequent, some judgment is required to decide which observations to exclude from further analysis.
+
+Sudden drops in pH to unlikely leves are one potnetial sign of problems wit hthe data.  Another sign is if the calculated alkalinity associated with a low pH observation is unreasonable for sea water (say below about 1000).
+
+We explore these problems graphically.
+
+## Graph of pH data over time
+```{r ph_time_graph}
+plt <- ggplot(the_data, aes(datetime, FET_PHINT)) +
+  geom_point(aes(color = TA_calc), alpha = 0.05) +
+  xlab('Date') +
+  ylab('pH') +
+  theme_cbep()
+plt
+```
+I note low pH excursions in 2015, perhaps 2016, and most of 2017. But note that the fist "spike" of low values in 2015 lack alkalinity calculations, presumably because other required data was not available.
+
+## Graph of pH versus Alkalinity
+(Note that since calculated alkalinity is only possible when all other data is available, this graph omits a lot of observations, including some low pH values.)
+```{r ph_alkalinity_graph}
+plt <- ggplot(the_data, aes(FET_PHINT, TA_calc, color = factor(yyyy))) +
+  geom_point(alpha = 0.1, size = 0.5) +
+  xlab('pH') +
+  ylab('Alkalinity') +
+  theme_cbep() +
+   guides(colour = guide_legend(override.aes = list(alpha = 1, size = 1)))
+plt
+```
+The most obvious problematic data (with very low alkalinity AND very low pH) are from 2015 and 2017.
+
+## Graph of Alkalinity vs. Salinity
+```{r alkalinity_salinity graph}
+plt <- ggplot(the_data, aes(SBE37_SALINITY, TA_calc, color = factor(yyyy))) +
+  geom_point(alpha = 0.2, size = 1)  +
+  xlab('Salinity') +
+  ylab('Alkalinity') +
+  guides(colour = guide_legend(override.aes = list(alpha = 1, size = 4))) +
+  scale_x_continuous(limits = c(22,32)) +
+  theme_cbep()
+plt
+```
+Again, what jumps out are the points with low pH in 2017 and 2015.  Although the HIGH alkalinity observations from early in 2017 also look off-base.
+
+If we look at a plot of pH versus temperature, the same points jump out, with possibly some other low pH observations from 2016.
+```{r pH_temp_graph}
+plt <- ggplot(the_data, aes(SBE37_TEMP, FET_PHINT, color = factor(yyyy))) +
+  geom_point(alpha = 0.1) +
+  theme_cbep() +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  xlab('Temperature (C)') +
+    ylab('pH') +
+  guides(colour = guide_legend(override.aes = list(alpha = 1)))
+plt
+```
+I see no obvious way to eliminate the erroneous data.  There are "bad" data popping up several times.  It's mostly the 2017 data, but there may also be problematic data in 2015 and 2016.
+
+### 2017
+Identify the date in 2017 when things went wonky.
+```{r closeup_ph_time_graph_1}
+plt <- the_data %>% filter(yyyy==2017, mm == 6, dd<18, dd>10) %>%
+  ggplot(aes(x=datetime, y=FET_PHINT)) + geom_line() +
+  theme_cbep() +
+  xlab('Date')
+plt
+```
+The pH drop off kicks in around June 14th. or 15th.
+
+So, things went odd around June 14th.
+
+### 2015
+```{r closeup_ph_time_graph_2}
+plt <- the_data %>% filter(yyyy==2015, mm %in% c(8,9,10)) %>%
+  ggplot(aes(x=datetime, y=FET_PHINT)) + 
+  geom_line(aes(color=(TA_calc<1200)))+
+  theme_cbep() +
+  xlab('Date')
+plt
+```
+
+That shows a low pH period, in September around end of September 8 through Sept 14.  The period may actually have started just before the data gap, around August 17th.  A second period of low pH falls around September 30 through October 11.  The exact period we should remove from the data here is somewhat arbitrary.  Since the primary indicator of problematic data is the low observed pH value, we risk biasing results.  Here we back that up by tossing out data by whole days, and by focusing on days with low calculated alkalinity.
+
+## Remove Questionable Data
+Remove questionable pH values and ALSO CO2Sys calculated values
+```{r create_selection_flag}
+d1 <- ISOdatetime(2015,8, 17,0,0, 0,'America/New_York')
+d2 <- ISOdatetime(2015,9,14,0,0, 0,'America/New_York')
+d3 <- ISOdatetime(2015,9,30,0,0, 0,'America/New_York')
+d4 <- ISOdatetime(2015,10,11,0,0, 0,'America/New_York')
+d5 <- ISOdatetime(2017,6,14,0,0, 0,'America/New_York')
+d6 <- ISOdatetime(2017,12,31,0,0,0,'America/New_York')
+phomitflag1  <- ! (the_data$datetime < d1 | the_data$datetime > d2)
+phomitflag2  <- ! (the_data$datetime < d3 | the_data$datetime > d4)
+phomitflag3  <- ! (the_data$datetime < d5 | the_data$datetime > d6)
+flag <- ! (phomitflag1 | phomitflag2 | phomitflag3)
+rm(phomitflag1, phomitflag2, phomitflag3)
+```
+
+### Show What pH Data Will be Removed
+```{r data_to_be_removed_graph}
+tt <- the_data %>%  mutate(t = flag) %>% filter(yyyy==2015)
+
+plt <- ggplot(tt, aes(x=datetime, y=FET_PHINT)) +
+  geom_point(aes(color = t),size = 0.5, alpha = 0.2) +
+  theme_cbep() +
+  xlab('Date') +
+  guides(colour = guide_legend(override.aes = list(alpha = 1)))
+plt
+rm(tt)
+```
+We are still left with some low values, but the  really wonky sudden pH changes are removed. 
+
+### Remove Unwanted Data
+TO trim the data, we use the flags to set to NA any variables that depend on accurate pH values, and then toss out any data that lacks remaining valid observations.
+```{r remove_bad_pH_data}
+trimmed_data <- the_data %>%
+  mutate(FET_PHINT = ifelse(flag, FET_PHINT, NA)) %>%
+  mutate(FET_PHEXT = ifelse(flag, FET_PHEXT, NA)) %>%
+  mutate(`omega-a` = ifelse(flag, `omega-a`, NA)) %>%
+  mutate(`omega-c` = ifelse(flag, `omega-c`, NA)) %>%
+  mutate(TA_calc = ifelse(flag, TA_calc, NA)) %>%
+  mutate(DIC_calc = ifelse(flag, DIC_calc, NA)) %>%
+  filter_all(any_vars(!is.na(.)))
+```
+
+# Final Data Cleanup
+## Rename Everything, drop categories we won't use
+```{r data_cleanup}
+trimmed_data <- trimmed_data %>%
+  select(-SBE37_CON,
+         -SAMICO2_TEMP,
+         -FET_PHEXT,
+         -DIC_calc
+         ) %>%
+  rename(doy = doy,
+         temp = SBE37_TEMP,
+         sal = SBE37_SALINITY,
+         co2 = SAMI_CO2,
+         do = Optode_O2,
+         ph = FET_PHINT,
+         omega_a = `omega-a`,
+         omega_c = `omega-c`
+  )
+```
+
+# Calculate Temperature Corrected pCO2
+Here we follow a formula for calculating a "Temperature Corrected" version of pCO~2~, which is derived from methods in  Takehashi et al. 2002.  
+
+> Takahashi, Taro & Sutherland, Stewart & Sweeney, Colm & Poisson, Alain &
+> Metzl, Nicolas & Tilbrook, Bronte & Bates, Nicholas & Wanninkhof, Rik & Feely,
+> Richard & Chris, Sabine & Olafsson, Jon & Nojiri, Yukihiro. (2002). Global
+> sea-air CO2 flux based on climatological surface ocean pCO2, and seasonal
+> biological and temperature effects. Deep Sea Research Part II: Topical Studies
+> in Oceanography. 49. 1601-1622. 10.1016/S0967-0645(02)00003-6.
+
+```{r calculate_temp_corrected}
+(t_ref = 12)
+(t_mean = mean(trimmed_data$temp, na.rm=TRUE))
+(co2_mean = mean(trimmed_data$co2, na.rm=TRUE))
+
+trimmed_data <- trimmed_data %>%
+  mutate(co2_thermal =  round(co2_mean*exp(0.0423*(temp-t_mean)),2)) %>%
+  mutate(co2_corr =  round(co2*exp(0.0423*(t_ref-temp)),2))
+```
+
+
+# Output Cleaned Data
+```{r save_data}
+write_csv(trimmed_data,'CascoBayOAData.csv')
+```
+
+
+
+
+
+

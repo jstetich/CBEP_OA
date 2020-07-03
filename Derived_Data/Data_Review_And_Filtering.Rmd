@@ -1,5 +1,5 @@
 ---
-title: "Review, Cleaning and Reorganization of Casco Bay OA Data"
+title: "Preparation of Casco Bay OA Data"
 author: Curtis C. Bohlen
 output:
   github_document:
@@ -32,7 +32,7 @@ sibling  <- file.path(parent,sibfldnm)
 ```
 
 ## Load data from identical excel spreadsheets
-This code retains only the median hourly values.
+This code retains only the median hourly values.  The code generates a list containing a separate dataframe for each deployment.  These lists will be collapsed into a single dataframe in the next code block.
 ```{r load_data, warning=FALSE}
 the_data <- list()
 for (yr in c(2015, 2016, 2017, 2018)) {
@@ -91,7 +91,7 @@ the_data <-  the_data %>% filter(
 # Filtering out Bad PH Data
 Larry Harris (of the University of Maine) was a coauthor on a poster based on these data for the "Gulf of Maine 2050" conference, held in Portland, Maine in 2019.  He pointed out to his coauthors (including CBEP staff) that certain pH observations appear unreliable.   Many low pH values look suspect, especially in 2017. THese data do not match the QA/QC samples collected during periodic site visits.  Since QA/QC samples are infrequent, some judgment is required to decide which observations to exclude from further analysis.
 
-Sudden drops in pH to unlikely leves are one potnetial sign of problems wit hthe data.  Another sign is if the calculated alkalinity associated with a low pH observation is unreasonable for sea water (say below about 1000).
+Sudden drops in pH to unlikely levels are one potential sign of problems wit hthe data.  Another sign is if the calculated alkalinity associated with a low pH observation is unreasonable for sea water (say below about 1000).
 
 We explore these problems graphically.
 
@@ -187,6 +187,7 @@ flag <- ! (phomitflag1 | phomitflag2 | phomitflag3)
 rm(phomitflag1, phomitflag2, phomitflag3)
 ```
 
+
 ### Show What pH Data Will be Removed
 ```{r data_to_be_removed_graph}
 tt <- the_data %>%  mutate(t = flag) %>% filter(yyyy==2015)
@@ -214,8 +215,21 @@ trimmed_data <- the_data %>%
   filter_all(any_vars(!is.na(.)))
 ```
 
-# Final Data Cleanup
-## Rename Everything, drop categories we won't use
+## One additinal point
+There is a single point that is recorded as being collected on January 20, 2016, which appears to be an error in several dimensions.  First, the instrument was dedeployed right around that time, and this value is 25 hours after the prior observation. Temperature is sky high for JAnuary, and th epH is unreasonably low.
+
+
+```{r remove_wonky_point}
+arow <- which.min(trimmed_data$FET_PHINT)
+trimmed_data[(arow-3):(arow+2),]
+nrow(trimmed_data)
+trimmed_data <- trimmed_data[-arow,]
+nrow(trimmed_data)
+```
+
+
+# Data Cleanup
+Just to neaten up rename everything, and drop data we won't use.
 ```{r data_cleanup}
 trimmed_data <- trimmed_data %>%
   select(-SBE37_CON,
@@ -234,8 +248,65 @@ trimmed_data <- trimmed_data %>%
   )
 ```
 
-# Calculate Temperature Corrected pCO2
-Here we follow a formula for calculating a "Temperature Corrected" version of pCO~2~, which is derived from methods in  Takehashi et al. 2002.  
+# Temperature Corrected pCO2 
+It turns out pCO~2~ is not a simple measure of the concentration (or activity) of CO~2~ in water, as it is strongly influenced by temperature.  Even at a fixed concentration of CO~2~ in seawater, there will be fluctuations in pCO~2~ due only to changes in temperature.
+
+Here is an informal argument for why this is true:  At higher temperatures, CO~2~ is less soluble in sea water.  At equilibrium, partitioning of CO~2~ between atmosphere and ocean water will shift more CO~2~ to the atmosphere, thus raising the partial pressure of CO~2~ in the atmosphere that equilibrates with the CO~2~ in the water.
+
+More formally, carbon dioxide (gas) in the atmosphere is in thermodynamic equilibrium with [CO~2~] in the water, (where [CO~2~] here (by convention) refers to the sum of activities of CO~2~ and H~2~CO~3~ in solution. 
+
+$$CO_{2(g)}
+\stackrel {K_{0}} {\longleftrightarrow} 
+[CO_{2(aq.)}] $$ 
+
+
+Thus at equilibrium,  
+
+$$fCO_{2} = [CO_{2(aq.)}] / K_{0}$$  
+
+where $fCO_{2}$, the *fugacity* of CO~2~, is "virtually equal to the partial pressure." Unfortunately, $K_{0}$ is not constant, but depends on temperature and salinity. One semi-empirical model for that relationship is the following (From Weiss 1974 but also presented elsewhere):  
+
+$$ ln~K_{0} = -60.2409 + 93.4517(100/T) + 23.3585 \times ln(T/100) + 
+S * [0.023517 - 0.023656 * (T/100) + 0.0047036 *(T/100)^2] $$  
+
+(Note that temperatures need to be expressed in Kelvin)
+
+> Weiss, RF. 1974.  Carbon dioxide in water and seawater: the solubility of a non-ideal gas.
+> Marine chemistry 2 (3), 203-215.
+
+## What do those equations imply?
+Here we make a graph that shows the magnitude of the conversion factor ($1/K_{0}$), which converts from observed $pCO_{2} \approx fCO_{2}$ to $[CO_{2}]$ (from the last equation, above) over the range of temperatures and salinities we are mostly concerned with.  This shows how measured pCO~2~ will vary based on temperature and salinity changes alone -- even without actual changes in the concentration of CO~2~.
+
+```{r weiss_eqn_figure, fig.width = 6, fig.height = 4, warning = FALSE}
+Tc <- seq(1,20,0.5) 
+S <- seq(20,35, 0.5)
+
+test <- expand.grid(Tc=Tc, S=S) %>%
+  mutate(T = Tc+273.15) %>%
+  mutate(lnK = -60.2409 +
+                 9345.17/T +
+                 23.3585 * log(T/100) +
+              S * (0.023517 - 
+                   0.023656 * (T/100) + 
+                   0.0047036 *(T/100)^2)) %>%
+  mutate(K=exp(lnK), invK = 1/K)
+
+ggplot(test, aes(x=Tc, y=S, z=invK)) +
+  geom_contour_filled(color='white') +
+  theme_cbep() +
+  scale_fill_brewer(name = expression(frac(1, K[0]))) +
+  xlab(expression('Temperature ('*degree~C*')')) +
+  ylab('Salinity (ppt)')
+```
+
+So, over the range of temperatures and salinities we are considering, the effect is mostly due to temperature -- if only because temperatures vary over ~ 20 C, while salinities vary only from ~ 25 ppt to about 32 ppt.  The overall effect of temperature and salinity could lead to a change in observed pCO~2~ of about a factor of two even in the absence of processes that change the concetration of CO~2~ in the Bay.
+
+```{r echo = FALSE}
+rm(test, Tc ,S)
+```
+
+## Takehashi et al. 2002 Relationships
+Here we follow a formula for calculating a "Temperature Corrected" pCO~2~, which is derived from methods in  Takehashi et al. 2002. The "temperature corrected" version adjusts for the themodynamic effect of temperature on pCO~2~ just discusssed.
 
 > Takahashi, Taro & Sutherland, Stewart & Sweeney, Colm & Poisson, Alain &
 > Metzl, Nicolas & Tilbrook, Bronte & Bates, Nicholas & Wanninkhof, Rik & Feely,
@@ -244,6 +315,21 @@ Here we follow a formula for calculating a "Temperature Corrected" version of pC
 > biological and temperature effects. Deep Sea Research Part II: Topical Studies
 > in Oceanography. 49. 1601-1622. 10.1016/S0967-0645(02)00003-6.
 
+Takahashi et al. 2002 Used direct calculation of "temperature corrected" pCO~2~ as a surrogate for changes in CO~2~ concentration, and conversely, estimates of "expected" thermal pCO~2~, as estimates of the magnitude of the fluctuations in pCO~2~ one would expect to see due to temperature alone, if there were no changes in [CO~2~].
+
+The Takehashi et al. 2002 equations are as follows:
+
+#### "Expected pCO~2~" at Observed Temperature
+$$(pCO_{2} \textrm{ at }T_{obs}) = (pCO_{2})_{obs} \times exp(0.0423(T_{obs}- T_{mean})$$
+
+#### "Temperature Corrected" pCO~2~
+$$(pCO_{2} \textrm{ at }T_{mean}) = (pCO_{2})_{obs} \times exp(0.0423(T_{mean}- T_{obs})$$  
+
+This is approach addresses the thermal dependence of pCO~2~ by calculating what the observed pCO~2~ would have been at some reference temperature (rather than estimating [CO~2~] as Weiss did).  Here we use $12 ^{\circ} C$ as our reference temperature.
+
+Equations from Takehashi et al. 2002 do not LOOK similar to Weiss's equations, but they are nearly equivalent. At fixed salinity near full sea water, they essentially differ only by a constant. 
+
+## Calculation of Temperature Corrected pCO~2~
 ```{r calculate_temp_corrected}
 (t_ref = 12)
 (t_mean = mean(trimmed_data$temp, na.rm=TRUE))

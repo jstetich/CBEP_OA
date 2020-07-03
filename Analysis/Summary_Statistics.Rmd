@@ -8,6 +8,11 @@ output:
     fig_height: 5
 ---
 
+<img
+  src="https://www.cascobayestuary.org/wp-content/uploads/2014/04/logo_sm.jpg"
+  style="position:absolute;top:10px;right:50px;" />
+
+
 # Load Libraries
 ```{r load_libraries}
 library(tidyverse)
@@ -125,48 +130,26 @@ knitr::kable(t(res), digits = c(0,0,0,3,3))
 
 # Monthly Summary Statistics
 This is means **across** years.  This is NOT the same as an estimated monthly average, adjusted for year to year variation, imbalances in time of day data was collected, etc.  For that, we would need to estimate marginal means from a GAMM. We do not pursue that idea in this notebook.  
+
 ```{r monthly_stats}
-all_data %>%
+monthly_tbl <- all_data %>%
   select(datetime, yyyy, mm, do, co2, co2_corr, ph, omega_a) %>%
   mutate(Month  = factor(mm, labels = month.abb)) %>%
   select(-mm) %>%
-  group_by(Month) %>%
-  summarize_at(vars(do, co2, co2_corr, ph, omega_a),
-               c(avg = ~mean(., na.rm=TRUE)))
-
-```
-
-
-```{r monthly_stats}
-test <- all_data %>%
-  select(datetime, yyyy, mm, do, co2, co2_corr, ph, omega_a) %>%
-  mutate(Month  = factor(mm, labels = month.abb)) %>%
-  select(-mm) %>%
-  pivot_longer(do:omega_a, names_to= 'parameter', values_to = 'value') %>%
+  pivot_longer(do:omega_a, names_to = 'parameter',
+               values_to = 'value') %>%
   group_by(Month, parameter) %>%
-  summarise(avg = round(mean(value, na.rm=TRUE),2),
-            median = round(median(value, na.rm=TRUE),2),
-            sd  = round(sd(value, na.rm=TRUE),3),
-            count = sum(! is.na(value)))
-```
-That contains the info we want, but not quite in the format we would like for a compact table.
-
-What we want is a table that has MONTHS across the top, and statistics within parameters down the side.
-
-So, we pivot longer again, then pivot wider in adifferent configuration.
-
-```{r}
-test2 <- test %>% ungroup() %>%
-  #select(-Month, -parameter) %>%
-  pivot_longer( cols = c('avg', 'median', 'sd', 'count'),
-               names_to = 'label')
-```
-
-```{r}
-test3 <- test2 %>%
+  summarise(
+    avg    = round(mean(value, na.rm = TRUE), 2),
+    median = round(median(value, na.rm = TRUE), 2),
+    sd     = round(sd(value, na.rm = TRUE), 3),
+    count  = sum(!is.na(value))
+  ) %>%
+  pivot_longer(cols = c('avg', 'median', 'sd', 'count'),
+               names_to = 'label') %>%
   pivot_wider(id_cols = c(parameter, label), names_from=Month) 
-test3
-write_csv(test3, 'Monthly_summaries.csv')
+knitr::kable(monthly_tbl)
+write_csv(monthly_tbl, 'Monthly_summaries.csv')
 ```
 
 

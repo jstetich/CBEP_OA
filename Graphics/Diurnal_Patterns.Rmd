@@ -46,8 +46,7 @@ fn    <- 'CascoBayOAData.csv'
 fpath <- file.path(sibling,fn)
 ```
 
-
-## Load Data
+## Load OA Data
 ```{r load_data} 
 all_data <- read_csv(fpath,
                      col_types = cols(dd = col_integer(), 
@@ -58,8 +57,7 @@ all_data <- read_csv(fpath,
   select(c(13, 1:4, 14, 5:6, 8, 7 ,16, 9:12))
 ```
 
-
-# Diurnal Deviations
+## Calculate Diurnal Deviations
 We calculate hourly deviation from daily averages. This can be done using linear models and extracting residuals, but the code is cleaner using the Tidyverse.  You could make the code shorter using mutate_at(), but being explicit here is clearer for readers.  An alternative would be to calculate deviations from daily medians instead of daily averages.  In this setting, it probably makes little differnce, but we did not explore that alternative.  
 ```{r hourly_deviations}
 new_data <- all_data %>%
@@ -87,7 +85,15 @@ new_data <- all_data %>%
   mutate(Month = factor(mm, labels=month.abb))
 ```
 
-# Plot Daily pCO2 Deviations By Month
+## Generate Long Version of the Data
+```{r reorganize data}
+long_data <- new_data %>% select(-c(7:15)) %>%  # Drop all raw observations; retain diurnal residuals
+                                                # retain only pC02_corr f pH residuals
+  pivot_longer(contains("_res"), names_to='metric') %>%
+  mutate(metric= sub("_res", "", metric))       #simplify names
+```
+
+# Plot Daily pCO~2~ Deviations
 By using ggplot's geom_smooth(), we can look graphically at GAM models by month.  This is a convenient way to explore diurnal patterns by season.  
 
 It is worth noting that these models are likely to over-fit the data, because they do not take into account temporal autocorrelations.  For graphical presentation, this is adequate, as detrending the time-series by day removed most of the autocorrelation structure that we do not wish to model directly.  Large sample sizes also reduce the probability that over-fitting will matter.  
@@ -108,19 +114,14 @@ plt
 plt + facet_wrap(~ mm)
 ```
 
-
-# Combined Graphic
-Lets combine those into faceted graphs.  To do so we first must reorganize the data into "long" format.
-```{r reorganize data}
-long_data <- new_data %>% select(-c(7:15)) %>%  # Drop all raw observations; retain diurnal residuals
-                                                # retain only pC02_corr f pH residuals
-  pivot_longer(contains("_res"), names_to='metric') %>%
-  mutate(metric= sub("_res", "", metric))       #simplify names
-```
+# Graphics Just Showing Trendlines
+Here we display trendlines derived from GAM models by month.  As noted above, these models are likely to slightly overfit the trends.
 
 Notice that the selection of the dimension of the periodic basis of the smooths in the GAM (signaled in k=6) is essentially selected here by eye to create a visual balance between simplicity and complexity.  The default here probably over-fits, as described above.  We explore the implied GAM (and related GAMM) further in the another R Notebook in the "Analysis" folder.
 
-Unfortunately, ggplot does not make it easy to change the labels of facets. The key here is to alter the labels of the factor used to specify facets to include all the plotmath to generate the desired label 
+Unfortunately, ggplot does not make it easy to change the labels of facets. The key here is to alter the labels of the factor used to specify facets to include all the plotmath code to generate the desired label.  
+
+# Simple Version
 ```{r combined_plot, fig.width = 8, fig.height = 5}
 labs <- c(expression(paste(pCO[2*(cor)], ' (', mu, 'Atm)')), 'pH')
 names(labs) <- unique(long_data$metric)[2:3]
@@ -149,9 +150,45 @@ ggsave('dailyco2andphbymonth.pdf', device = cairo_pdf, width = 8, height = 5)
 ggsave('dailyco2andphbymonth.png', type = 'cairo', width = 8, height = 5)
 ```
 
+
+## A graphic that shows error bars
+These error bars are likely to be too narrow, potentially much too narrow, because they do not consider autocorrelations.  A more complex model using GAMM with an AR1 correlation would be better, but we would have to build that up "by hand" from the GAMM predictions.  Not insurmountable, but a lot of work for little gain
+
+```{r combined_plot_error, fig.width = 8, fig.height = 5}
+labs <- c(expression(paste(pCO[2*(cor)], ' (', mu, 'Atm)')), 'pH')
+names(labs) <- unique(long_data$metric)[2:3]
+
+tmp <- long_data %>%
+  filter( ! metric == 'co2') %>%
+  mutate(metric = factor(metric, levels = names(labs), labels = labs))
+
+plt <-
+  ggplot(tmp, aes(hh,value, color = month)) +
+  geom_smooth(aes(color = month, fill=month), method = "gam",
+              formula = y~s(x, bs='cc', k=6), se=TRUE,
+             # alpha = 0.2, 
+              linetype = 0
+             ) +
+
+  theme_cbep() +
+  theme(panel.spacing = unit(2, "lines")) +
+  
+  xlab('Hour of the Day') +
+  ylab('Difference from Daily Average') +
+  facet_wrap(~metric, nrow=1, scales='free_y',
+                   labeller = label_parsed ) +
+  scale_color_discrete(name = "Month") + 
+  scale_fill_discrete(name = "Month") + 
+  scale_x_continuous(breaks = c(0,6,12,18,24)) #+
+  #ggtitle('Daily Fluctuations')
+plt
+#ggsave('dailyco2andphbymontherror.pdf', device = cairo_pdf, width = 8, height = 5)
+#ggsave('dailyco2andphbymontherror.png', type = 'cairo', width = 8, height = 5)
+```
+
 Daily fluctuations are at their peak in the late summer and early fall, with highest pCO~2~ observed in the morning, soon after sunrise. Lowest values are a few hours after sunset.  By mid-winter, the fluctuations are smaller, with peaks later in the day, around sunset, which suggests CO2 is being released all day long, and reabsorbed at night, which I don't quite understand.  Also note that timing or pCO~2~ and pH fluctuations don't match consistently across months.
 
-# Corrected pCO2 Graph
+## Corrected pCO2 Graph
 ```{r pco2_figure, fig.width = 4, fig.height = 4, warning=FALSE}
 plt <- new_data %>%
   ggplot(aes(hh,co2_corr_res, color = month)) +
@@ -174,7 +211,7 @@ ggsave('dailyCO2bymonth.pdf', device=cairo_pdf, width = 4, height = 4)
 ggsave('dailyCO2bymonth.png', type='cairo', width = 4, height = 4)
 ```
 
-# pH Graph
+## pH Graph
 ```{r phfigure, fig.width = 4, fig.height = 4, warning=FALSE}
 plt <- new_data %>%
   ggplot(aes(hh,ph_res, color = month)) +

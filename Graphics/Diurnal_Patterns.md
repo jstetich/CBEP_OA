@@ -6,15 +6,16 @@ Curtis C. Bohlen
   - [Load Libraries](#load-libraries)
   - [Load Data](#load-data)
       - [Establish Folder References](#establish-folder-references)
-      - [Load Data](#load-data-1)
-  - [Diurnal Deviations](#diurnal-deviations)
-  - [Plot Daily pCO2 Deviations By
-    Month](#plot-daily-pco2-deviations-by-month)
+      - [Load OA Data](#load-oa-data)
+      - [Calculate Diurnal Deviations](#calculate-diurnal-deviations)
+      - [Generate Long Version of the
+        Data](#generate-long-version-of-the-data)
+  - [Plot Daily pCO<sub>2</sub> Deviations](#plot-daily-pco2-deviations)
       - [Plotting curves against scatter
         plots](#plotting-curves-against-scatter-plots)
   - [Combined Graphic](#combined-graphic)
-  - [Corrected pCO2 Graph](#corrected-pco2-graph)
-  - [pH Graph](#ph-graph)
+      - [Corrected pCO2 Graph](#corrected-pco2-graph)
+      - [pH Graph](#ph-graph)
 
 <img
     src="https://www.cascobayestuary.org/wp-content/uploads/2014/04/logo_sm.jpg"
@@ -45,14 +46,14 @@ and how we calculated temperature-corrected pCO2 values.)
 library(tidyverse)
 ```
 
-    ## -- Attaching packages ----------------------------------------------------------------------------------- tidyverse 1.3.0 --
+    ## -- Attaching packages ---------------------------------------------------------------------------------------------------------------------------------------------------------------- tidyverse 1.3.0 --
 
     ## v ggplot2 3.3.2     v purrr   0.3.4
     ## v tibble  3.0.1     v dplyr   1.0.0
     ## v tidyr   1.1.0     v stringr 1.4.0
     ## v readr   1.3.1     v forcats 0.5.0
 
-    ## -- Conflicts -------------------------------------------------------------------------------------- tidyverse_conflicts() --
+    ## -- Conflicts ------------------------------------------------------------------------------------------------------------------------------------------------------------------- tidyverse_conflicts() --
     ## x dplyr::filter() masks stats::filter()
     ## x dplyr::lag()    masks stats::lag()
 
@@ -90,7 +91,7 @@ fn    <- 'CascoBayOAData.csv'
 fpath <- file.path(sibling,fn)
 ```
 
-## Load Data
+## Load OA Data
 
 ``` r
 all_data <- read_csv(fpath,
@@ -102,7 +103,7 @@ all_data <- read_csv(fpath,
   select(c(13, 1:4, 14, 5:6, 8, 7 ,16, 9:12))
 ```
 
-# Diurnal Deviations
+## Calculate Diurnal Deviations
 
 We calculate hourly deviation from daily averages. This can be done
 using linear models and extracting residuals, but the code is cleaner
@@ -138,7 +139,16 @@ new_data <- all_data %>%
   mutate(Month = factor(mm, labels=month.abb))
 ```
 
-# Plot Daily pCO2 Deviations By Month
+## Generate Long Version of the Data
+
+``` r
+long_data <- new_data %>% select(-c(7:15)) %>%  # Drop all raw observations; retain diurnal residuals
+                                                # retain only pC02_corr f pH residuals
+  pivot_longer(contains("_res"), names_to='metric') %>%
+  mutate(metric= sub("_res", "", metric))       #simplify names
+```
+
+# Plot Daily pCO<sub>2</sub> Deviations
 
 By using ggplot’s geom\_smooth(), we can look graphically at GAM models
 by month. This is a convenient way to explore diurnal patterns by
@@ -188,15 +198,7 @@ plt + facet_wrap(~ mm)
 
 # Combined Graphic
 
-Lets combine those into faceted graphs. To do so we first must
-reorganize the data into “long” format.
-
-``` r
-long_data <- new_data %>% select(-c(7:15)) %>%  # Drop all raw observations; retain diurnal residuals
-                                                # retain only pC02_corr f pH residuals
-  pivot_longer(contains("_res"), names_to='metric') %>%
-  mutate(metric= sub("_res", "", metric))       #simplify names
-```
+Lets combine those into faceted graphs.
 
 Notice that the selection of the dimension of the periodic basis of the
 smooths in the GAM (signaled in k=6) is essentially selected here by eye
@@ -251,6 +253,52 @@ ggsave('dailyco2andphbymonth.png', type = 'cairo', width = 8, height = 5)
 
     ## Warning: Removed 18451 rows containing non-finite values (stat_smooth).
 
+``` r
+labs <- c(expression(paste(pCO[2*(cor)], ' (', mu, 'Atm)')), 'pH')
+names(labs) <- unique(long_data$metric)[2:3]
+
+tmp <- long_data %>%
+  filter( ! metric == 'co2') %>%
+  mutate(metric = factor(metric, levels = names(labs), labels = labs))
+
+plt <-
+  ggplot(tmp, aes(hh,value, color = month)) +
+  geom_smooth(aes(color = month, fill=month), method = "gam",
+              formula = y~s(x, bs='cc', k=6), se=TRUE,
+             # alpha = 0.2, 
+              linetype = 0
+             ) +
+
+  theme_cbep() +
+  theme(panel.spacing = unit(2, "lines")) +
+  
+  xlab('Hour of the Day') +
+  ylab('Difference from Daily Average') +
+  facet_wrap(~metric, nrow=1, scales='free_y',
+                   labeller = label_parsed ) +
+  scale_color_discrete(name = "Month") + 
+  scale_fill_discrete(name = "Month") + 
+  scale_x_continuous(breaks = c(0,6,12,18,24)) #+
+  #ggtitle('Daily Fluctuations')
+plt
+```
+
+    ## Warning: Removed 18451 rows containing non-finite values (stat_smooth).
+
+![](Diurnal_Patterns_files/figure-gfm/combined_plot_error-1.png)<!-- -->
+
+``` r
+ggsave('dailyco2andphbymontherror.pdf', device = cairo_pdf, width = 8, height = 5)
+```
+
+    ## Warning: Removed 18451 rows containing non-finite values (stat_smooth).
+
+``` r
+ggsave('dailyco2andphbymontherror.png', type = 'cairo', width = 8, height = 5)
+```
+
+    ## Warning: Removed 18451 rows containing non-finite values (stat_smooth).
+
 Daily fluctuations are at their peak in the late summer and early fall,
 with highest pCO<sub>2</sub> observed in the morning, soon after
 sunrise. Lowest values are a few hours after sunset. By mid-winter, the
@@ -260,7 +308,7 @@ night, which I don’t quite understand. Also note that timing or
 pCO<sub>2</sub> and pH fluctuations don’t match consistently across
 months.
 
-# Corrected pCO2 Graph
+## Corrected pCO2 Graph
 
 ``` r
 plt <- new_data %>%
@@ -289,7 +337,7 @@ ggsave('dailyCO2bymonth.pdf', device=cairo_pdf, width = 4, height = 4)
 ggsave('dailyCO2bymonth.png', type='cairo', width = 4, height = 4)
 ```
 
-# pH Graph
+## pH Graph
 
 ``` r
 plt <- new_data %>%

@@ -102,7 +102,7 @@ These graphs combine data from multiple years to generate a picture of seasonal 
 It's not technically OK to show a reference line on a figure with temperature-corrected pCO2.  The equilibrium between [co~2~] and fugacity is temperature dependent.  It would be appropriate on a graphs showing uncorrected pCO~2~.
 
 ```{r pc02_Raw_by_doy,fig.width = 7, fig.height = 5}
-plt <- ggplot(all_data, aes(doy, co2_corr)) + geom_point(aes(color = factor(yyyy)), alpha = 0.1) +
+plt <- ggplot(all_data, aes(doy, co2)) + geom_point(aes(color = factor(yyyy)), alpha = 0.1) +
   
   # geom_hline(aes(yintercept = 400), lty = 'dotted', color = 'gray') +
   # annotate('text', x=365, y=370, label= expression(pCO[2*(cor)]~'='~ 400), hjust=1, size=3) +

@@ -1,6 +1,6 @@
 ---
 title: "Preparation of Casco Bay OA Data"
-author: Curtis C. Bohlen
+author: Curtis C. Bohlen, Casco Bay Estuary Partnership
 output:
   github_document:
     toc: true
@@ -59,15 +59,16 @@ the_data <- bind_rows(the_data) %>%
   mutate(doy = as.numeric(strftime(datetime, format = "%j")))
 ```
 
-# Correct Errors
+# Corrections
 In downstream analysis steps, We uncovered duplicate dates and times, but al lduiplicate rows lack data, specifically from January of 2016. We filter them out here.
 
-## Demonstrate the Problem
+## Records that have no Data
+### Demonstrate the Problem
 ```{r demonstration}
 the_data %>% select(datetime) %>% group_by(datetime) %>% summarize(n = n()) %>% filter(n>1) %>% arrange(datetime)
 ```
 
-### Drop records that have no data
+### Drop records
 ```{r remove_dup_dates}
 the_data <-  the_data %>% filter(
    ! (
@@ -88,14 +89,14 @@ the_data <-  the_data %>% filter(
 
 ```
 
-# Filtering out Bad PH Data
+## Bad PH Data
 Larry Harris (of the University of Maine) was a coauthor on a poster based on these data for the "Gulf of Maine 2050" conference, held in Portland, Maine in 2019.  He pointed out to his coauthors (including CBEP staff) that certain pH observations appear unreliable.   Many low pH values look suspect, especially in 2017. THese data do not match the QA/QC samples collected during periodic site visits.  Since QA/QC samples are infrequent, some judgment is required to decide which observations to exclude from further analysis.
 
 Sudden drops in pH to unlikely levels are one potential sign of problems wit hthe data.  Another sign is if the calculated alkalinity associated with a low pH observation is unreasonable for sea water (say below about 1000).
 
 We explore these problems graphically.
 
-## Graph of pH data over time
+### Graph of pH data over time
 ```{r ph_time_graph}
 plt <- ggplot(the_data, aes(datetime, FET_PHINT)) +
   geom_point(aes(color = TA_calc), alpha = 0.05) +
@@ -106,7 +107,7 @@ plt
 ```
 I note low pH excursions in 2015, perhaps 2016, and most of 2017. But note that the fist "spike" of low values in 2015 lack alkalinity calculations, presumably because other required data was not available.
 
-## Graph of pH versus Alkalinity
+### Graph of pH versus Alkalinity
 (Note that since calculated alkalinity is only possible when all other data is available, this graph omits a lot of observations, including some low pH values.)
 ```{r ph_alkalinity_graph}
 plt <- ggplot(the_data, aes(FET_PHINT, TA_calc, color = factor(yyyy))) +
@@ -119,7 +120,7 @@ plt
 ```
 The most obvious problematic data (with very low alkalinity AND very low pH) are from 2015 and 2017.
 
-## Graph of Alkalinity vs. Salinity
+### Graph of Alkalinity vs. Salinity
 ```{r alkalinity_salinity graph}
 plt <- ggplot(the_data, aes(SBE37_SALINITY, TA_calc, color = factor(yyyy))) +
   geom_point(alpha = 0.2, size = 1)  +
@@ -132,6 +133,7 @@ plt
 ```
 Again, what jumps out are the points with low pH in 2017 and 2015.  Although the HIGH alkalinity observations from early in 2017 also look off-base.
 
+### Graph of pH vs. Temperature
 If we look at a plot of pH versus temperature, the same points jump out, with possibly some other low pH observations from 2016.
 ```{r pH_temp_graph}
 plt <- ggplot(the_data, aes(SBE37_TEMP, FET_PHINT, color = factor(yyyy))) +
@@ -144,9 +146,9 @@ plt <- ggplot(the_data, aes(SBE37_TEMP, FET_PHINT, color = factor(yyyy))) +
   guides(colour = guide_legend(override.aes = list(alpha = 1)))
 plt
 ```
-I see no obvious way to eliminate the erroneous data.  There are "bad" data popping up several times.  It's mostly the 2017 data, but there may also be problematic data in 2015 and 2016.
+I see no simple way to eliminate the questionable data.  There are "bad" data popping up several times.  It's mostly the 2017 data, but there may also be problematic data in 2015 and 2016.
 
-### 2017
+### Review 2017 Data Details
 Identify the date in 2017 when things went wonky.
 ```{r closeup_ph_time_graph_1}
 plt <- the_data %>% filter(yyyy==2017, mm == 6, dd<18, dd>10) %>%
@@ -155,11 +157,9 @@ plt <- the_data %>% filter(yyyy==2017, mm == 6, dd<18, dd>10) %>%
   xlab('Date')
 plt
 ```
-The pH drop off kicks in around June 14th. or 15th.
+The pH drop off kicks in around June 14th. or 15th, so, things went odd around June 14th.
 
-So, things went odd around June 14th.
-
-### 2015
+### Review 2015 Data Details
 ```{r closeup_ph_time_graph_2}
 plt <- the_data %>% filter(yyyy==2015, mm %in% c(8,9,10)) %>%
   ggplot(aes(x=datetime, y=FET_PHINT)) + 
@@ -168,8 +168,7 @@ plt <- the_data %>% filter(yyyy==2015, mm %in% c(8,9,10)) %>%
   xlab('Date')
 plt
 ```
-
-That shows a low pH period, in September around end of September 8 through Sept 14.  The period may actually have started just before the data gap, around August 17th.  A second period of low pH falls around September 30 through October 11.  The exact period we should remove from the data here is somewhat arbitrary.  Since the primary indicator of problematic data is the low observed pH value, we risk biasing results.  Here we back that up by tossing out data by whole days, and by focusing on days with low calculated alkalinity.
+That shows a low pH period, in September around end of September 8 through Sept 14.  The period may actually have started just before the data gap, around August 17th.  A second period of low pH falls around September 30 through October 11.  The exact period we should remove from the data here is somewhat arbitrary.  Since the primary indicator of problematic data is the low observed pH value, we risk biasing results.  Here we try to address that by tossing out data by whole days, and by focusing on days with low calculated alkalinity.
 
 ## Remove Questionable Data
 Remove questionable pH values and ALSO CO2Sys calculated values
@@ -215,8 +214,8 @@ trimmed_data <- the_data %>%
   filter_all(any_vars(!is.na(.)))
 ```
 
-## One additinal point
-There is a single point that is recorded as being collected on January 20, 2016, which appears to be an error in several dimensions.  First, the instrument was dedeployed right around that time, and this value is 25 hours after the prior observation. Temperature is sky high for JAnuary, and th epH is unreasonably low.
+## One additional point
+There is a single point that is recorded as being collected on January 20, 2016, which appears to be an error in several dimensions.  First, the instrument was de-deployed right around that time, and this timestamp is 25 hours after the prior observation, which is unlikely. Temperature is sky high for January, and the pH is unreasonably low.  WE interpret this value as being a measurement that should have been removed during QA/QC because it was probably collected when the device was out of the water and in transit back to the lab for servicing.
 
 
 ```{r remove_wonky_point}
@@ -248,6 +247,28 @@ trimmed_data <- trimmed_data %>%
   )
 ```
 
+
+
+# Calculate Changed Units for Dissolved Oxygen.
+In most policy contexts, dissolved oxygen is measured in units of milligrams per liter.  Here we provide an approximate conversion.
+Density of sea water is close to 1.027 g/ml (which is equal to kg/l) at 12 degrees C and 30 ppt.   It varies in the third decimal place based on temperature and in the second decimal place by salinity.
+
+$$ DO_{mg/l} = DO_{\mu Mole/kg} \times \frac {1.027 ~ kg}{l}
+\times \frac{1 ~ Mole}{10^6  ~ \mu Mole}
+\times \frac {15.99 ~  g  ~ 02}{Mole}
+\times \frac {2 ~ Moles ~ O} {Mole ~ O_{2}}
+\times \frac {1000~mg}{g}$$  
+
+
+
+
+
+```{r convert_do_units}
+trimmed_data <- trimmed_data %>%
+  mutate(do_mgpl = do* 1.027 * 15.999 * 2 * 1000 / 10^6)
+```
+
+
 # Temperature Corrected pCO2 
 It turns out pCO~2~ is not a simple measure of the concentration (or activity) of CO~2~ in water, as it is strongly influenced by temperature.  Even at a fixed concentration of CO~2~ in seawater, there will be fluctuations in pCO~2~ due only to changes in temperature.
 
@@ -255,7 +276,7 @@ Here is an informal argument for why this is true:  At higher temperatures, CO~2
 
 More formally, carbon dioxide (gas) in the atmosphere is in thermodynamic equilibrium with [CO~2~] in the water, (where [CO~2~] here (by convention) refers to the sum of activities of CO~2~ and H~2~CO~3~ in solution. 
 
-$$CO_{2(g)}
+$$ CO_{2(g)}
 \stackrel {K_{0}} {\longleftrightarrow} 
 [CO_{2(aq.)}] $$ 
 
@@ -299,14 +320,14 @@ ggplot(test, aes(x=Tc, y=S, z=invK)) +
   ylab('Salinity (ppt)')
 ```
 
-So, over the range of temperatures and salinities we are considering, the effect is mostly due to temperature -- if only because temperatures vary over ~ 20 C, while salinities vary only from ~ 25 ppt to about 32 ppt.  The overall effect of temperature and salinity could lead to a change in observed pCO~2~ of about a factor of two even in the absence of processes that change the concetration of CO~2~ in the Bay.
+So, over the range of temperatures and salinities we are considering, the effect is mostly due to temperature -- if only because temperatures vary over ~ 20 C, while salinities vary only from ~ 25 ppt to about 32 ppt.  The overall effect of temperature and salinity could lead to a change in observed pCO~2~ of about a factor of two even in the absence of processes that change the concentration of CO~2~ in the Bay.
 
 ```{r echo = FALSE}
 rm(test, Tc ,S)
 ```
 
 ## Takehashi et al. 2002 Relationships
-Here we follow a formula for calculating a "Temperature Corrected" pCO~2~, which is derived from methods in  Takehashi et al. 2002. The "temperature corrected" version adjusts for the themodynamic effect of temperature on pCO~2~ just discusssed.
+Here we follow a formula for calculating a "Temperature Corrected" pCO~2~, which is derived from methods in  Takehashi et al. 2002. The "temperature corrected" version adjusts for the thermodynamic effect of temperature on pCO~2~ just discussed.
 
 > Takahashi, Taro & Sutherland, Stewart & Sweeney, Colm & Poisson, Alain &
 > Metzl, Nicolas & Tilbrook, Bronte & Bates, Nicholas & Wanninkhof, Rik & Feely,

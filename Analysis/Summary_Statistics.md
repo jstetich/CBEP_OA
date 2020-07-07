@@ -24,14 +24,14 @@ Curtis C. Bohlen
 library(tidyverse)
 ```
 
-    ## -- Attaching packages ---------------------------------- tidyverse 1.3.0 --
+    ## -- Attaching packages ---------------------------------------------------------------------------------------------------------------- tidyverse 1.3.0 --
 
     ## v ggplot2 3.3.2     v purrr   0.3.4
     ## v tibble  3.0.1     v dplyr   1.0.0
     ## v tidyr   1.1.0     v stringr 1.4.0
     ## v readr   1.3.1     v forcats 0.5.0
 
-    ## -- Conflicts ------------------------------------- tidyverse_conflicts() --
+    ## -- Conflicts ------------------------------------------------------------------------------------------------------------------- tidyverse_conflicts() --
     ## x dplyr::filter() masks stats::filter()
     ## x dplyr::lag()    masks stats::lag()
 
@@ -39,7 +39,6 @@ library(tidyverse)
 library(readr)
 
 library(CBEPgraphics)
-
 load_cbep_fonts()
 ```
 
@@ -69,14 +68,17 @@ all_data <- read_csv(fpath,
                                       hh = col_integer(),
                                       mm = col_integer(),
                                       yyyy = col_integer())) %>%
-  select(c(13, 1:4, 14, 5:6, 8, 7 ,16, 9:12))
+  select(c(13, 1:4, 14, 5:6, 8, 15, 7 ,9, 16, 17, 10:12))
+#names(all_data)
+```
 
+``` r
 daily_data <- all_data %>%
   select(-hh, -yyyy, -mm, -dd, -doy) %>%         # Will recalculate these 
   mutate(the_date = as.Date(datetime)) %>%
   select(-datetime) %>%
   group_by(the_date) %>%
-  summarise_at(c("temp", "sal", "co2", "co2_corr", "do", "ph", 'omega_a'),
+  summarise_at(c("temp", "sal", "co2", "co2_corr", "do", "do_mgpl", "ph", "omega_a"),
                c(m    = function(x) median(x, na.rm=TRUE),
                  r    = function(x) {suppressWarnings(max(x, na.rm=TRUE) -
                                                         min(x, na.rm=TRUE))},
@@ -97,17 +99,18 @@ This is legacy code. It would be easier today to develop this directly
 in the tidyverse.
 
 ``` r
-the.mins     <- sapply(all_data[7:15], min, na.rm=TRUE)
-the.medians  <- sapply(all_data[7:15], median, na.rm=TRUE)
-the.means    <- sapply(all_data[7:15], mean, na.rm=TRUE)
-the.maxes    <- sapply(all_data[7:15], max, na.rm=TRUE)
-the.SDs  <-   sapply(all_data[7:15], sd, na.rm=TRUE)
-the.samplesizes <-  sapply(all_data[7:15], function(x) sum(! is.na(x)) )
+the.mins     <- sapply(all_data[7:16], min, na.rm=TRUE)
+the.medians  <- sapply(all_data[7:16], median, na.rm=TRUE)
+the.means    <- sapply(all_data[7:16], mean, na.rm=TRUE)
+the.maxes    <- sapply(all_data[7:16], max, na.rm=TRUE)
+the.SDs      <- sapply(all_data[7:16], sd, na.rm=TRUE)
+the.samplesizes <-  sapply(all_data[7:16], function(x) sum(! is.na(x)) )
 result   <-  cbind(the.mins, the.medians, the.means, the.maxes, the.SDs, the.samplesizes)
 colnames(result) <- c('Minimum', 'Median', 'Mean', 'Maximum', 'Std. Deviation', 'Observations')
 rownames(result) <- c('Temperature',
                       'Salinity',
-                      'DO',
+                      'DO, (uMole/kg)',
+                      'DO (mg/l)',
                       'pCO2',
                       'pCO2_corr',
                       'pH',
@@ -115,23 +118,24 @@ rownames(result) <- c('Temperature',
                       'Omega Calcite',
                       'TA'
                       )
-knitr::kable(result, digits = c(1,1,2,1,3.0))
+knitr::kable(result, digits = c(1,1,2,1,3,0))
 ```
 
-|                 | Minimum | Median |    Mean | Maximum | Std. Deviation | Observations |
-| :-------------- | ------: | -----: | ------: | ------: | -------------: | -----------: |
-| Temperature     |   \-1.4 |   12.7 |   11.49 |    25.3 |          4.795 |        24619 |
-| Salinity        |    11.3 |   29.8 |   29.20 |    32.1 |          2.061 |        23707 |
-| DO              |   174.1 |  324.3 |  328.55 |   417.8 |         46.003 |        18542 |
-| pCO2            |   190.8 |  560.6 |  578.28 |  1409.5 |        171.722 |        18535 |
-| pCO2\_corr      |   228.1 |  584.6 |  582.18 |  1298.4 |        127.360 |        18528 |
-| pH              |     7.5 |    7.9 |    7.93 |     8.3 |          0.118 |        12829 |
-| Omega Aragonite |     0.2 |    1.7 |    1.67 |     3.4 |          0.471 |         7110 |
-| Omega Calcite   |     0.3 |    2.7 |    2.63 |     5.3 |          0.744 |         7110 |
-| TA              |   703.8 | 2289.7 | 2328.74 |  4700.0 |        473.949 |         7110 |
+|                 | Minimum | Median |   Mean | Maximum | Std. Deviation | Observations |
+| :-------------- | ------: | -----: | -----: | ------: | -------------: | -----------: |
+| Temperature     |   \-1.4 |   12.7 |  11.49 |    25.3 |          4.795 |        24619 |
+| Salinity        |    11.3 |   29.8 |  29.20 |    32.1 |          2.061 |        23707 |
+| DO, (uMole/kg)  |   174.1 |  324.3 | 328.55 |   417.8 |         46.003 |        18542 |
+| DO (mg/l)       |     5.7 |   10.7 |  10.80 |    13.7 |          1.512 |        18542 |
+| pCO2            |   190.8 |  560.6 | 578.28 |  1409.5 |        171.722 |        18535 |
+| pCO2\_corr      |     7.5 |    7.9 |   7.93 |     8.3 |          0.118 |        12829 |
+| pH              |   335.7 |  608.1 | 589.85 |  1037.9 |        113.440 |        24619 |
+| Omega Aragonite |   228.1 |  584.6 | 582.18 |  1298.4 |        127.360 |        18528 |
+| Omega Calcite   |     0.2 |    1.7 |   1.67 |     3.4 |          0.471 |         7110 |
+| TA              |     0.3 |    2.7 |   2.63 |     5.3 |          0.744 |         7110 |
 
 ``` r
-write.csv(result, 'summarystats.csv')
+write.csv(result, 'summarystats_OA_CBEP.csv')
 ```
 
 # Omega Aragonite Observations and Percentage Below Levels of Concern
@@ -185,7 +189,7 @@ marginal means from a GAMM. We do not pursue that idea in this notebook.
 
 ``` r
 monthly_tbl <- all_data %>%
-  select(datetime, yyyy, mm, do, co2, co2_corr, ph, omega_a) %>%
+  select(datetime, yyyy, mm, do, do_mgpl, co2, co2_corr, ph, omega_a) %>%
   mutate(Month  = factor(mm, labels = month.abb)) %>%
   select(-mm) %>%
   pivot_longer(do:omega_a, names_to = 'parameter',
@@ -222,6 +226,10 @@ knitr::kable(monthly_tbl)
 | do        | median | 406.860 | 400.020 | 401.790 | 404.420 |  377.870 |  347.110 |  329.220 |  310.060 |  292.240 |  300.290 |  315.060 |  338.600 |
 | do        | sd     |   3.565 |   6.254 |   4.986 |  11.957 |   18.794 |   20.538 |   24.296 |   27.300 |   37.084 |   32.222 |   16.944 |   26.562 |
 | do        | count  | 175.000 | 534.000 | 376.000 | 687.000 | 2218.000 | 2072.000 | 1464.000 | 2161.000 | 2732.000 | 2660.000 | 1975.000 | 1488.000 |
+| do\_mgpl  | avg    |  13.340 |  13.140 |  13.190 |  13.210 |   12.430 |   11.360 |   10.900 |   10.030 |    9.360 |    9.510 |   10.320 |   11.310 |
+| do\_mgpl  | median |  13.370 |  13.150 |  13.200 |  13.290 |   12.420 |   11.410 |   10.820 |   10.190 |    9.600 |    9.870 |   10.350 |   11.130 |
+| do\_mgpl  | sd     |   0.117 |   0.206 |   0.164 |   0.393 |    0.618 |    0.675 |    0.798 |    0.897 |    1.219 |    1.059 |    0.557 |    0.873 |
+| do\_mgpl  | count  | 175.000 | 534.000 | 376.000 | 687.000 | 2218.000 | 2072.000 | 1464.000 | 2161.000 | 2732.000 | 2660.000 | 1975.000 | 1488.000 |
 | omega\_a  | avg    |     NaN |     NaN |     NaN |   1.910 |    1.990 |    1.610 |    1.760 |    1.710 |    1.510 |    1.640 |    0.610 |      NaN |
 | omega\_a  | median |      NA |      NA |      NA |   1.910 |    1.970 |    1.670 |    1.830 |    1.790 |    1.440 |    1.610 |    0.580 |       NA |
 | omega\_a  | sd     |      NA |      NA |      NA |   0.094 |    0.164 |    0.365 |    0.290 |    0.547 |    0.370 |    0.580 |    0.216 |       NA |
@@ -232,5 +240,5 @@ knitr::kable(monthly_tbl)
 | ph        | count  | 449.000 |   0.000 |   0.000 | 249.000 | 1476.000 | 1763.000 | 2210.000 | 1838.000 | 1680.000 | 1850.000 |  753.000 |  561.000 |
 
 ``` r
-write_csv(monthly_tbl, 'Monthly_summaries.csv')
+write_csv(monthly_tbl, 'Monthly_summaries_OA_CBEP.csv')
 ```

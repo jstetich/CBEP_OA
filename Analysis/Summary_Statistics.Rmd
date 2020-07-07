@@ -136,10 +136,10 @@ This is means **across** years.  This is NOT the same as an estimated monthly av
 
 ```{r monthly_stats}
 monthly_tbl <- all_data %>%
-  select(datetime, yyyy, mm, do, do_mgpl, co2, co2_corr, ph, omega_a) %>%
+  select(datetime, yyyy, mm, temp, sal, do, do_mgpl, co2, co2_corr, ph, omega_a) %>%
   mutate(Month  = factor(mm, labels = month.abb)) %>%
   select(-mm) %>%
-  pivot_longer(do:omega_a, names_to = 'parameter',
+  pivot_longer(temp:omega_a, names_to = 'parameter',
                values_to = 'value') %>%
   group_by(Month, parameter) %>%
   summarise(

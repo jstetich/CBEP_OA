@@ -63,14 +63,14 @@ report.
 library(tidyverse)
 ```
 
-    ## -- Attaching packages ---------------------------------------------------------------------------------------------------------------------------------------------------------------- tidyverse 1.3.0 --
+    ## -- Attaching packages --------------------------------------------------------------------------------------------------------------- tidyverse 1.3.0 --
 
     ## v ggplot2 3.3.2     v purrr   0.3.4
     ## v tibble  3.0.1     v dplyr   1.0.0
     ## v tidyr   1.1.0     v stringr 1.4.0
     ## v readr   1.3.1     v forcats 0.5.0
 
-    ## -- Conflicts ------------------------------------------------------------------------------------------------------------------------------------------------------------------- tidyverse_conflicts() --
+    ## -- Conflicts ------------------------------------------------------------------------------------------------------------------ tidyverse_conflicts() --
     ## x dplyr::filter() masks stats::filter()
     ## x dplyr::lag()    masks stats::lag()
 
@@ -189,12 +189,12 @@ and fugacity is temperature dependent. It would be appropriate on a
 graphs showing uncorrected pCO<sub>2</sub>.
 
 ``` r
-plt <- ggplot(all_data, aes(doy, co2_corr)) + geom_point(aes(color = factor(yyyy)), alpha = 0.1) +
+plt <- ggplot(all_data, aes(doy, co2)) + geom_point(aes(color = factor(yyyy)), alpha = 0.1) +
   
   # geom_hline(aes(yintercept = 400), lty = 'dotted', color = 'gray') +
   # annotate('text', x=365, y=370, label= expression(pCO[2*(cor)]~'='~ 400), hjust=1, size=3) +
   
-  xlab('Day of Year') +
+  xlab('') +
   ylab(expression (pCO[2]~(mu*Atm))) +
   scale_color_manual(values=cbep_colors()[c(3,2,5,4)], name='Year') +
   scale_x_continuous(breaks = cutpoints, labels = monthlabs) +
@@ -204,7 +204,7 @@ plt <- ggplot(all_data, aes(doy, co2_corr)) + geom_point(aes(color = factor(yyyy
 plt
 ```
 
-    ## Warning: Removed 6158 rows containing missing values (geom_point).
+    ## Warning: Removed 6151 rows containing missing values (geom_point).
 
 ![](Principal_Graphics_files/figure-gfm/pc02_Raw_by_doy-1.png)<!-- -->
 
@@ -212,13 +212,13 @@ plt
 ggsave('pco2RawSeasonal.png', type = 'cairo', width = 7, height = 5)
 ```
 
-    ## Warning: Removed 6158 rows containing missing values (geom_point).
+    ## Warning: Removed 6151 rows containing missing values (geom_point).
 
 ``` r
 ggsave('pco2RawSeasonal.pdf', device=cairo_pdf, width = 7, height = 5)
 ```
 
-    ## Warning: Removed 6158 rows containing missing values (geom_point).
+    ## Warning: Removed 6151 rows containing missing values (geom_point).
 
 ## Temperature Corrected pCO2
 
@@ -233,7 +233,7 @@ plt <- ggplot(all_data, aes(doy, co2_corr)) + geom_point(aes(color = factor(yyyy
   # geom_hline(aes(yintercept = 400), lty = 'dotted', color = 'gray') +
   # annotate('text', x=365, y=370, label= expression(pCO[2*(cor)]~'='~ 400), hjust=1, size=3) +
   
-  xlab('Day of Year') +
+  xlab('') +
   ylab(expression (pCO[2*(cor)]~(mu*Atm))) +
   scale_color_manual(values=cbep_colors()[c(3,2,5,4)], name='Year') +
   scale_x_continuous(breaks = cutpoints, labels = monthlabs) +
@@ -310,7 +310,7 @@ ggsave('pco2compare.pdf', device=cairo_pdf, width = 3, height = 2)
 
 ``` r
 plt <- ggplot(all_data, aes(doy, ph)) + geom_point(aes(color = factor(yyyy)),alpha = 0.05) +
-  xlab('Day of Year') +
+  xlab('') +
   ylab('pH') +
   scale_color_manual(values=cbep_colors()[c(3,2,5,4)], name='Year') +
   scale_x_continuous(breaks = cutpoints, labels = monthlabs) +
@@ -351,7 +351,7 @@ plt <- ggplot(all_data, aes(doy, omega_a)) + geom_point(aes(color = factor(yyyy)
   geom_text(aes(x=0, y=0.9, label= 'Omega = 1.0', hjust = 0), size=3) +
   
   
-  xlab('Day of Year') +
+  xlab('') +
   ylab(expression(Omega[a])) +
   
   scale_color_manual(values=cbep_colors()[c(3,2,5,4)], name='Year') +
@@ -405,7 +405,7 @@ plt  <- long_data %>% filter(Parameter %in% c('temp', 'ph', 'co2_corr')) %>%
   
   ggplot(aes(x=datetime, y=Value, group = daygroup)) + geom_line(aes(color = Parameter)) +
   #theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-  xlab('Date')  +
+  xlab('')  +
   ylab(NULL) +
   
   theme_cbep() +
@@ -454,7 +454,7 @@ plt  <- long_data %>%
         strip.text = element_text(size = 9),
         legend.position = "none") +
   
-  xlab('Date')  +
+  xlab('')  +
   ylab(NULL) +
   
   scale_color_manual(values=cbep_colors()[c(3,2,5,4)], name='Year') +

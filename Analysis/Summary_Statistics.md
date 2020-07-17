@@ -24,14 +24,14 @@ Curtis C. Bohlen
 library(tidyverse)
 ```
 
-    ## -- Attaching packages ---------------------------------------------------------------------------------------------------------------- tidyverse 1.3.0 --
+    ## -- Attaching packages --------------------------------------------------------------------------------------------------------------- tidyverse 1.3.0 --
 
     ## v ggplot2 3.3.2     v purrr   0.3.4
     ## v tibble  3.0.1     v dplyr   1.0.0
     ## v tidyr   1.1.0     v stringr 1.4.0
     ## v readr   1.3.1     v forcats 0.5.0
 
-    ## -- Conflicts ------------------------------------------------------------------------------------------------------------------- tidyverse_conflicts() --
+    ## -- Conflicts ------------------------------------------------------------------------------------------------------------------ tidyverse_conflicts() --
     ## x dplyr::filter() masks stats::filter()
     ## x dplyr::lag()    masks stats::lag()
 
@@ -99,40 +99,42 @@ This is legacy code. It would be easier today to develop this directly
 in the tidyverse.
 
 ``` r
-the.mins     <- sapply(all_data[7:16], min, na.rm=TRUE)
-the.medians  <- sapply(all_data[7:16], median, na.rm=TRUE)
-the.means    <- sapply(all_data[7:16], mean, na.rm=TRUE)
-the.maxes    <- sapply(all_data[7:16], max, na.rm=TRUE)
-the.SDs      <- sapply(all_data[7:16], sd, na.rm=TRUE)
-the.samplesizes <-  sapply(all_data[7:16], function(x) sum(! is.na(x)) )
+the.mins     <- sapply(all_data[7:17], min, na.rm=TRUE)
+the.medians  <- sapply(all_data[7:17], median, na.rm=TRUE)
+the.means    <- sapply(all_data[7:17], mean, na.rm=TRUE)
+the.maxes    <- sapply(all_data[7:17], max, na.rm=TRUE)
+the.SDs      <- sapply(all_data[7:17], sd, na.rm=TRUE)
+the.samplesizes <-  sapply(all_data[7:17], function(x) sum(! is.na(x)) )
 result   <-  cbind(the.mins, the.medians, the.means, the.maxes, the.SDs, the.samplesizes)
 colnames(result) <- c('Minimum', 'Median', 'Mean', 'Maximum', 'Std. Deviation', 'Observations')
 rownames(result) <- c('Temperature',
                       'Salinity',
-                      'DO, (uMole/kg)',
+                      'DO (uMole/kg)',
                       'DO (mg/l)',
                       'pCO2',
+                      'pH (Total)',
+                      'pCO2_thermal',
                       'pCO2_corr',
-                      'pH',
                       'Omega Aragonite',
                       'Omega Calcite',
-                      'TA'
+                      'Total Alkalinity'
                       )
 knitr::kable(result, digits = c(1,1,2,1,3,0))
 ```
 
-|                 | Minimum | Median |   Mean | Maximum | Std. Deviation | Observations |
-| :-------------- | ------: | -----: | -----: | ------: | -------------: | -----------: |
-| Temperature     |   \-1.4 |   12.7 |  11.49 |    25.3 |          4.795 |        24619 |
-| Salinity        |    11.3 |   29.8 |  29.20 |    32.1 |          2.061 |        23707 |
-| DO, (uMole/kg)  |   174.1 |  324.3 | 328.55 |   417.8 |         46.003 |        18542 |
-| DO (mg/l)       |     5.7 |   10.7 |  10.80 |    13.7 |          1.512 |        18542 |
-| pCO2            |   190.8 |  560.6 | 578.28 |  1409.5 |        171.722 |        18535 |
-| pCO2\_corr      |     7.5 |    7.9 |   7.93 |     8.3 |          0.118 |        12829 |
-| pH              |   335.7 |  608.1 | 589.85 |  1037.9 |        113.440 |        24619 |
-| Omega Aragonite |   228.1 |  584.6 | 582.18 |  1298.4 |        127.360 |        18528 |
-| Omega Calcite   |     0.2 |    1.7 |   1.67 |     3.4 |          0.471 |         7110 |
-| TA              |     0.3 |    2.7 |   2.63 |     5.3 |          0.744 |         7110 |
+|                  | Minimum | Median |    Mean | Maximum | Std. Deviation | Observations |
+| :--------------- | ------: | -----: | ------: | ------: | -------------: | -----------: |
+| Temperature      |   \-1.4 |   12.7 |   11.49 |    25.3 |          4.795 |        24619 |
+| Salinity         |    11.3 |   29.8 |   29.20 |    32.1 |          2.061 |        23707 |
+| DO (uMole/kg)    |   174.1 |  324.3 |  328.55 |   417.8 |         46.003 |        18542 |
+| DO (mg/l)        |     5.7 |   10.7 |   10.80 |    13.7 |          1.512 |        18542 |
+| pCO2             |   190.8 |  560.6 |  578.28 |  1409.5 |        171.722 |        18535 |
+| pH (Total)       |     7.5 |    7.9 |    7.93 |     8.3 |          0.118 |        12829 |
+| pCO2\_thermal    |   335.7 |  608.1 |  589.85 |  1037.9 |        113.440 |        24619 |
+| pCO2\_corr       |   228.1 |  584.6 |  582.18 |  1298.4 |        127.360 |        18528 |
+| Omega Aragonite  |     0.2 |    1.7 |    1.67 |     3.4 |          0.471 |         7110 |
+| Omega Calcite    |     0.3 |    2.7 |    2.63 |     5.3 |          0.744 |         7110 |
+| Total Alkalinity |   703.8 | 2289.7 | 2328.74 |  4700.0 |        473.949 |         7110 |
 
 ``` r
 write.csv(result, 'summarystats_OA_CBEP.csv')

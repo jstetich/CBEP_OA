@@ -107,7 +107,7 @@ plt <- ggplot(all_data, aes(doy, co2)) + geom_point(aes(color = factor(yyyy)), a
   # geom_hline(aes(yintercept = 400), lty = 'dotted', color = 'gray') +
   # annotate('text', x=365, y=370, label= expression(pCO[2*(cor)]~'='~ 400), hjust=1, size=3) +
   
-  xlab('Day of Year') +
+  xlab('') +
   ylab(expression (pCO[2]~(mu*Atm))) +
   scale_color_manual(values=cbep_colors()[c(3,2,5,4)], name='Year') +
   scale_x_continuous(breaks = cutpoints, labels = monthlabs) +
@@ -129,7 +129,7 @@ plt <- ggplot(all_data, aes(doy, co2_corr)) + geom_point(aes(color = factor(yyyy
   # geom_hline(aes(yintercept = 400), lty = 'dotted', color = 'gray') +
   # annotate('text', x=365, y=370, label= expression(pCO[2*(cor)]~'='~ 400), hjust=1, size=3) +
   
-  xlab('Day of Year') +
+  xlab('') +
   ylab(expression (pCO[2*(cor)]~(mu*Atm))) +
   scale_color_manual(values=cbep_colors()[c(3,2,5,4)], name='Year') +
   scale_x_continuous(breaks = cutpoints, labels = monthlabs) +
@@ -176,7 +176,7 @@ ggsave('pco2compare.pdf', device=cairo_pdf, width = 3, height = 2)
 ## pH
 ```{r ph_by_doy,fig.width = 7, fig.height = 5}
 plt <- ggplot(all_data, aes(doy, ph)) + geom_point(aes(color = factor(yyyy)),alpha = 0.05) +
-  xlab('Day of Year') +
+  xlab('') +
   ylab('pH') +
   scale_color_manual(values=cbep_colors()[c(3,2,5,4)], name='Year') +
   scale_x_continuous(breaks = cutpoints, labels = monthlabs) +
@@ -202,7 +202,7 @@ plt <- ggplot(all_data, aes(doy, omega_a)) + geom_point(aes(color = factor(yyyy)
   geom_text(aes(x=0, y=0.9, label= 'Omega = 1.0', hjust = 0), size=3) +
   
   
-  xlab('Day of Year') +
+  xlab('') +
   ylab(expression(Omega[a])) +
   
   scale_color_manual(values=cbep_colors()[c(3,2,5,4)], name='Year') +
@@ -234,7 +234,7 @@ plt  <- long_data %>% filter(Parameter %in% c('temp', 'ph', 'co2_corr')) %>%
   
   ggplot(aes(x=datetime, y=Value, group = daygroup)) + geom_line(aes(color = Parameter)) +
   #theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-  xlab('Date')  +
+  xlab('')  +
   ylab(NULL) +
   
   theme_cbep() +
@@ -273,7 +273,7 @@ plt  <- long_data %>%
         strip.text = element_text(size = 9),
         legend.position = "none") +
   
-  xlab('Date')  +
+  xlab('')  +
   ylab(NULL) +
   
   scale_color_manual(values=cbep_colors()[c(3,2,5,4)], name='Year') +

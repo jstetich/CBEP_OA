@@ -1,6 +1,6 @@
 ---
 title: "Graphics Showing Diurnal Fluctuations in pH and Corrected CO~2~"
-author: Curtis C. Bohlen
+author: "Curtis C. Bohlen, Casco Bay Estuary Partnership"
 output:
   github_document:
     toc: true
@@ -54,7 +54,7 @@ all_data <- read_csv(fpath,
                                       hh = col_integer(),
                                       mm = col_integer(),
                                       yyyy = col_integer())) %>%
-  select(c(13, 1:4, 14, 5:6, 8, 7 ,16, 9:12))
+  select(c(13, 1:4, 14, 5:6, 8, 7 ,17, 9:12))
 ```
 
 ## Calculate Diurnal Deviations
@@ -146,8 +146,8 @@ plt <-
   scale_x_continuous(breaks = c(0,6,12,18,24)) #+
   #ggtitle('Daily Fluctuations')
 plt
-ggsave('dailyco2andphbymonth.pdf', device = cairo_pdf, width = 8, height = 5)
-ggsave('dailyco2andphbymonth.png', type = 'cairo', width = 8, height = 5)
+ggsave('dailyco2andphbymonth_cbep.pdf', device = cairo_pdf, width = 8, height = 5)
+ggsave('dailyco2andphbymonth_cbep.png', type = 'cairo', width = 8, height = 5)
 ```
 
 
@@ -207,8 +207,8 @@ plt <- new_data %>%
   scale_x_continuous(breaks = c(0,6,12,18,24)) #+
   #ggtitle(expression(Daily~pCO[2]))
 plt
-ggsave('dailyCO2bymonth.pdf', device=cairo_pdf, width = 4, height = 4)
-ggsave('dailyCO2bymonth.png', type='cairo', width = 4, height = 4)
+ggsave('dailyCO2bymonth_cbep.pdf', device=cairo_pdf, width = 4, height = 4)
+ggsave('dailyCO2bymonth_cbep.png', type='cairo', width = 4, height = 4)
 ```
 
 ## pH Graph
@@ -229,8 +229,8 @@ plt <- new_data %>%
   scale_x_continuous(breaks = c(0,6,12,18,24)) #+
   #ggtitle(expression(Daily~pH))
 plt
-ggsave('dailyphbymonth.pdf', device=cairo_pdf, width = 4, height = 4)
-ggsave('dailyphbymonth.png', type='cairo', width = 4, height = 4)
+ggsave('dailyphbymonth_cbep.pdf', device=cairo_pdf, width = 4, height = 4)
+ggsave('dailyphbymonth_cbep.png', type='cairo', width = 4, height = 4)
 ```
 
 

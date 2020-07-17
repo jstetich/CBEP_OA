@@ -1,6 +1,6 @@
 ---
 title: "Analysis of Casco Bay OA data through 2018 -- Principal Graphics"
-author: Curtis C. Bohlen
+author: "Curtis C. Bohlen, Casco Bay Estuary Partnership"
 output:
   github_document:
     toc: true
@@ -115,8 +115,8 @@ plt <- ggplot(all_data, aes(doy, co2)) + geom_point(aes(color = factor(yyyy)), a
   theme_cbep() +
   theme(axis.text.x=element_text(angle=90, vjust = 1.5))
 plt
-ggsave('pco2RawSeasonal.png', type = 'cairo', width = 7, height = 5)
-ggsave('pco2RawSeasonal.pdf', device=cairo_pdf, width = 7, height = 5)
+ggsave('pco2RawSeasonal_cbep.png', type = 'cairo', width = 7, height = 5)
+ggsave('pco2RawSeasonal_cbep.pdf', device=cairo_pdf, width = 7, height = 5)
 ```
 
 
@@ -137,8 +137,8 @@ plt <- ggplot(all_data, aes(doy, co2_corr)) + geom_point(aes(color = factor(yyyy
   theme_cbep() +
   theme(axis.text.x=element_text(angle=90, vjust = 1.5))
 plt
-ggsave('pco2Seasonal.png', type = 'cairo', width = 7, height = 5)
-ggsave('pco2Seasonal.pdf', device=cairo_pdf, width = 7, height = 5)
+ggsave('pco2Seasonal_cbep.png', type = 'cairo', width = 7, height = 5)
+ggsave('pco2Seasonal_cbep.pdf', device=cairo_pdf, width = 7, height = 5)
 ```
 
 ## Both Raw and Corrected pco~2~ on One Graph.
@@ -165,8 +165,8 @@ plt  <- long_data %>% filter(Parameter %in% c('co2', 'co2_corr')) %>%
   theme(legend.position= c(.3, .8))
 plt
 
-ggsave('pco2compare.png', type = 'cairo', width = 3, height = 2)
-ggsave('pco2compare.pdf', device=cairo_pdf, width = 3, height = 2)
+ggsave('pco2compare_cbep.png', type = 'cairo', width = 3, height = 2)
+ggsave('pco2compare_cbep.pdf', device=cairo_pdf, width = 3, height = 2)
 
 ```
 
@@ -187,8 +187,8 @@ plt <- ggplot(all_data, aes(doy, ph)) + geom_point(aes(color = factor(yyyy)),alp
   theme_cbep() +
   theme(axis.text.x=element_text(angle=90, vjust = 1.5))
 plt
-ggsave('phSeasonal.png', type = 'cairo', width = 7, height = 5)
-ggsave('phSeasonal.pdf', device=cairo_pdf, width = 7, height = 5)
+ggsave('phSeasonal_cbep.png', type = 'cairo', width = 7, height = 5)
+ggsave('phSeasonal_cbep.pdf', device=cairo_pdf, width = 7, height = 5)
 ```
 
 ## Aragonite Saturation State
@@ -214,8 +214,8 @@ plt <- ggplot(all_data, aes(doy, omega_a)) + geom_point(aes(color = factor(yyyy)
   theme(axis.text.x=element_text(angle=90, vjust = 1.5))
   
 plt
-ggsave('omegaSeasonal.png', type = 'cairo', width = 7, height = 5)
-ggsave('omegaSeasonal.pdf', device=cairo_pdf, width = 7, height = 5)
+ggsave('omegaSeasonal_cbep.png', type = 'cairo', width = 7, height = 5)
+ggsave('omegaSeasonal_cbep.pdf', device=cairo_pdf, width = 7, height = 5)
 
 ```
 

@@ -1,6 +1,6 @@
 Analysis of Casco Bay OA data through 2018 – Principal Graphics
 ================
-Curtis C. Bohlen
+Curtis C. Bohlen, Casco Bay Estuary Partnership
 
   - [Introduction](#introduction)
   - [Load Libraries](#load-libraries)
@@ -209,13 +209,13 @@ plt
 ![](Principal_Graphics_files/figure-gfm/pc02_Raw_by_doy-1.png)<!-- -->
 
 ``` r
-ggsave('pco2RawSeasonal.png', type = 'cairo', width = 7, height = 5)
+ggsave('pco2RawSeasonal_cbep.png', type = 'cairo', width = 7, height = 5)
 ```
 
     ## Warning: Removed 6151 rows containing missing values (geom_point).
 
 ``` r
-ggsave('pco2RawSeasonal.pdf', device=cairo_pdf, width = 7, height = 5)
+ggsave('pco2RawSeasonal_cbep.pdf', device=cairo_pdf, width = 7, height = 5)
 ```
 
     ## Warning: Removed 6151 rows containing missing values (geom_point).
@@ -248,13 +248,13 @@ plt
 ![](Principal_Graphics_files/figure-gfm/pc02_by_doy-1.png)<!-- -->
 
 ``` r
-ggsave('pco2Seasonal.png', type = 'cairo', width = 7, height = 5)
+ggsave('pco2Seasonal_cbep.png', type = 'cairo', width = 7, height = 5)
 ```
 
     ## Warning: Removed 6158 rows containing missing values (geom_point).
 
 ``` r
-ggsave('pco2Seasonal.pdf', device=cairo_pdf, width = 7, height = 5)
+ggsave('pco2Seasonal_cbep.pdf', device=cairo_pdf, width = 7, height = 5)
 ```
 
     ## Warning: Removed 6158 rows containing missing values (geom_point).
@@ -295,13 +295,13 @@ plt
 ![](Principal_Graphics_files/figure-gfm/pco2_comparison-1.png)<!-- -->
 
 ``` r
-ggsave('pco2compare.png', type = 'cairo', width = 3, height = 2)
+ggsave('pco2compare_cbep.png', type = 'cairo', width = 3, height = 2)
 ```
 
     ## Warning: Removed 50 row(s) containing missing values (geom_path).
 
 ``` r
-ggsave('pco2compare.pdf', device=cairo_pdf, width = 3, height = 2)
+ggsave('pco2compare_cbep.pdf', device=cairo_pdf, width = 3, height = 2)
 ```
 
     ## Warning: Removed 50 row(s) containing missing values (geom_path).
@@ -328,13 +328,13 @@ plt
 ![](Principal_Graphics_files/figure-gfm/ph_by_doy-1.png)<!-- -->
 
 ``` r
-ggsave('phSeasonal.png', type = 'cairo', width = 7, height = 5)
+ggsave('phSeasonal_cbep.png', type = 'cairo', width = 7, height = 5)
 ```
 
     ## Warning: Removed 11858 rows containing missing values (geom_point).
 
 ``` r
-ggsave('phSeasonal.pdf', device=cairo_pdf, width = 7, height = 5)
+ggsave('phSeasonal_cbep.pdf', device=cairo_pdf, width = 7, height = 5)
 ```
 
     ## Warning: Removed 11858 rows containing missing values (geom_point).
@@ -370,13 +370,13 @@ plt
 ![](Principal_Graphics_files/figure-gfm/omega_by_doy-1.png)<!-- -->
 
 ``` r
-ggsave('omegaSeasonal.png', type = 'cairo', width = 7, height = 5)
+ggsave('omegaSeasonal_cbep.png', type = 'cairo', width = 7, height = 5)
 ```
 
     ## Warning: Removed 17575 rows containing missing values (geom_point).
 
 ``` r
-ggsave('omegaSeasonal.pdf', device=cairo_pdf, width = 7, height = 5)
+ggsave('omegaSeasonal_cbep.pdf', device=cairo_pdf, width = 7, height = 5)
 ```
 
     ## Warning: Removed 17575 rows containing missing values (geom_point).

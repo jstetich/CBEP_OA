@@ -55,12 +55,12 @@ for (yr in c(2015, 2016, 2017, 2018)) {
 ```{r combine_data}
 the_data <- bind_rows(the_data) %>%
   select(-yyyymmdd, -Matlab_datenum, -FET_TEMP_CON) %>%
-  mutate(datetime = ISOdatetime(yyyy, mm, dd, hh,0,0, 'America/New_York')) %>%
+  mutate(datetime = ISOdatetime(yyyy, mm, dd, hh,0,0, 'UTC')) %>%
   mutate(doy = as.numeric(strftime(datetime, format = "%j")))
 ```
 
 # Corrections
-In downstream analysis steps, We uncovered duplicate dates and times, but al lduiplicate rows lack data, specifically from January of 2016. We filter them out here.
+In downstream analysis steps, We uncovered duplicate dates and times, but all duplicate rows lack data, specifically from January of 2016. We filter them out here.
 
 ## Records that have no Data
 ### Demonstrate the Problem
@@ -186,7 +186,6 @@ flag <- ! (phomitflag1 | phomitflag2 | phomitflag3)
 rm(phomitflag1, phomitflag2, phomitflag3)
 ```
 
-
 ### Show What pH Data Will be Removed
 ```{r data_to_be_removed_graph}
 tt <- the_data %>%  mutate(t = flag) %>% filter(yyyy==2015)
@@ -216,7 +215,6 @@ trimmed_data <- the_data %>%
 
 ## One additional point
 There is a single point that is recorded as being collected on January 20, 2016, which appears to be an error in several dimensions.  First, the instrument was de-deployed right around that time, and this timestamp is 25 hours after the prior observation, which is unlikely. Temperature is sky high for January, and the pH is unreasonably low.  WE interpret this value as being a measurement that should have been removed during QA/QC because it was probably collected when the device was out of the water and in transit back to the lab for servicing.
-
 
 ```{r remove_wonky_point}
 arow <- which.min(trimmed_data$FET_PHINT)
@@ -255,11 +253,9 @@ Density of sea water is close to 1.027 g/ml (which is equal to kg/l) at 12 degre
 
 $$ DO_{mg/l} = DO_{\mu Mole/kg} \times \frac {1.027 ~ kg}{l}
 \times \frac{1 ~ Mole}{10^6  ~ \mu Mole}
-\times \frac {15.99 ~  g  ~ 02}{Mole}
+\times \frac {15.99 ~  g  ~ O}{Mole}
 \times \frac {2 ~ Moles ~ O} {Mole ~ O_{2}}
-\times \frac {1000~mg}{g}$$  
-
-
+\times \frac {1000~mg}{g}$$
 
 
 
@@ -322,7 +318,7 @@ ggplot(test, aes(x=Tc, y=S, z=invK)) +
 
 So, over the range of temperatures and salinities we are considering, the effect is mostly due to temperature -- if only because temperatures vary over ~ 20 C, while salinities vary only from ~ 25 ppt to about 32 ppt.  The overall effect of temperature and salinity could lead to a change in observed pCO~2~ of about a factor of two even in the absence of processes that change the concentration of CO~2~ in the Bay.
 
-```{r echo = FALSE}
+```{r cleanup echo = FALSE}
 rm(test, Tc ,S)
 ```
 
@@ -360,7 +356,6 @@ trimmed_data <- trimmed_data %>%
   mutate(co2_thermal =  round(co2_mean*exp(0.0423*(temp-t_mean)),2)) %>%
   mutate(co2_corr =  round(co2*exp(0.0423*(t_ref-temp)),2))
 ```
-
 
 # Output Cleaned Data
 ```{r save_data}

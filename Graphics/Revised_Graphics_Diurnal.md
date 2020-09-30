@@ -2,6 +2,8 @@ Analysis of Casco Bay OA data through 2018 – Revised Diurnal Graphics
 ================
 Curtis C. Bohlen, Casco Bay Estuary Partnership
 
+  - [WARNING: This Notebook Takes a Long Time to
+    Run](#warning-this-notebook-takes-a-long-time-to-run)
   - [Introduction](#introduction)
   - [Load Libraries](#load-libraries)
   - [Color Palette For Seasonal
@@ -32,6 +34,15 @@ Curtis C. Bohlen, Casco Bay Estuary Partnership
     src="https://www.cascobayestuary.org/wp-content/uploads/2014/04/logo_sm.jpg"
     style="position:absolute;top:10px;right:50px;" />
 
+# WARNING: This Notebook Takes a Long Time to Run
+
+Several complex models take between five and fifteen minutes each to
+run, so “RUN All” OR “knit” may take twenty minutes or more to run. The
+code is designed to “cache” results after it has been “knit” once, so
+that is principally a problem if you run the code in this notebook
+directly, change the data or model specifications between “knits”, or if
+you delete the cache files from your computer.
+
 # Introduction
 
 This notebook and related notebooks document analysis of data derived
@@ -55,14 +66,14 @@ greater detail at model selection and uncertainty.
 library(tidyverse)  # includes readr, readxl and lubridate
 ```
 
-    ## -- Attaching packages ---------------------------------------------------------------------------------------------- tidyverse 1.3.0 --
+    ## -- Attaching packages ---------------------------------------------------------------------- tidyverse 1.3.0 --
 
     ## v ggplot2 3.3.2     v purrr   0.3.4
-    ## v tibble  3.0.3     v dplyr   1.0.0
-    ## v tidyr   1.1.0     v stringr 1.4.0
+    ## v tibble  3.0.3     v dplyr   1.0.2
+    ## v tidyr   1.1.2     v stringr 1.4.0
     ## v readr   1.3.1     v forcats 0.5.0
 
-    ## -- Conflicts ------------------------------------------------------------------------------------------------- tidyverse_conflicts() --
+    ## -- Conflicts ------------------------------------------------------------------------- tidyverse_conflicts() --
     ## x dplyr::filter() masks stats::filter()
     ## x dplyr::lag()    masks stats::lag()
 
@@ -90,7 +101,7 @@ library(mgcv)
     ## 
     ##     collapse
 
-    ## This is mgcv 1.8-31. For overview type 'help("mgcv-package")'.
+    ## This is mgcv 1.8-33. For overview type 'help("mgcv-package")'.
 
 ``` r
 library(CBEPgraphics)
@@ -135,6 +146,8 @@ sibling  <- file.path(parent,sibfldnm)
 
 fn    <- 'CascoBayOAData.csv'
 fpath <- file.path(sibling,fn)
+
+dir.create(file.path(getwd(), 'figures'), showWarnings = FALSE)
 ```
 
 ## Dealing with Time Zones
@@ -172,7 +185,7 @@ Note the series of datetime transformations here:
 
 3.  Finally, we need to convert to local time. Here, we can just change
     the ‘tzone’ attribute. (We use the structure() function for its
-    convenience is a tidyverse pipeline.)
+    convenience in a tidyverse pipeline.)
 
 ## Read the Data
 
@@ -221,7 +234,7 @@ all_data <- read_csv(fpath,
 
 ## Confirm Timezone Corrections
 
-We quickly confirm that our efforts to adjust time coordiates had the
+We quickly confirm that our efforts to adjust time coordinates had the
 intended effect.
 
 We compare UTC, local standard time (UTC - 5 hours) and local time
@@ -229,7 +242,7 @@ We compare UTC, local standard time (UTC - 5 hours) and local time
 five hours “behind” UTC, while local time is in daylight savings, so
 should be four hours behind.
 
-The first timestamp in the CSV file (‘CascoBayOAData.csv’) is 2015-4-23
+The first time stamp in the CSV file (‘CascoBayOAData.csv’) is 2015-4-23
 15:00 (in UTC).
 
 ``` r
@@ -249,13 +262,14 @@ knitr::kable(all_data %>%
 | 2015-04-23 19:00:00 |    1429815600 | 2015-04-23 14:00:00 |   1429815600 | 2015-04-23 15:00:00 |     1429815600 |
 | 2015-04-23 20:00:00 |    1429819200 | 2015-04-23 15:00:00 |   1429819200 | 2015-04-23 16:00:00 |     1429819200 |
 
-Note that:  
-1\. The first value of datetime matches the timestamp (in UTM) from the
-CSV file.  
-2\. The internal representation of the three different times remains the
-same, but the text representation differs.  
-3\. As required, stdtime is five hours behind datetime and localtime is
-four hours behind, as required.
+Note that:
+
+1.  The first value of datetime matches the time stamp (in UTM) from the
+    CSV file.  
+2.  The internal representation of the three different times remains the
+    same, but the text representation differs.  
+3.  As required, std time is five hours behind datetime and local time
+    is four hours behind.
 
 # pCO<sub>2</sub> Graphics (Temperature Corrected) by Season
 
@@ -289,8 +303,8 @@ diurnal_data <- all_data %>%
 
 ## Run the GAMM
 
-The following takes \~ 15 minutes on a lightly loaded computer (Windows
-10, 64 bit, Intel i5 processor, 2.4 GHz), and as long as 25 minutes when
+The following takes \~ 8 minutes on a lightly loaded computer (Windows
+10, 64 bit, Intel i7 processor, 2.4 GHz), and as long as 25 minutes when
 the machine had lots of other things going on.
 
 ``` r
@@ -300,7 +314,7 @@ system.time(pco2_gam <- gamm(co2_corr_res ~  s(hh, by = Season, bs='cc', k=6),
 ```
 
     ##    user  system elapsed 
-    ##  742.63  189.36  983.42
+    ##  432.89   90.47  523.44
 
 ## Generate Predictions from the Model
 
@@ -336,8 +350,8 @@ ggplot(newdat, aes(x=hh, y=pred, color = Season)) + #geom_line() +
 ![](Revised_Graphics_Diurnal_files/figure-gfm/co2_ribbon-1.png)<!-- -->
 
 ``` r
-ggsave('pco2_diurnal_seasons.pdf', device = cairo_pdf, width = 4, height = 4)
-ggsave('pco2_diurnal_seasons.png', type = 'cairo', width = 4, height = 4)
+ggsave('figures/pco2_diurnal_seasons.pdf', device = cairo_pdf, width = 4, height = 4)
+#ggsave('figures/pco2_diurnal_seasons.png', type = 'cairo', width = 4, height = 4)
 ```
 
 ## Alternate Graphic with Lines
@@ -358,8 +372,8 @@ ggplot(newdat, aes(x=hh, y=pred)) +
 ![](Revised_Graphics_Diurnal_files/figure-gfm/co2_lines-1.png)<!-- -->
 
 ``` r
-ggsave('pco2_diurnal_seasons_lines.pdf', device = cairo_pdf, width = 4, height = 4)
-ggsave('pco2_diurnal_seasons_Lines.png', type = 'cairo', width = 4, height = 4)
+ggsave('figures/pco2_diurnal_seasons_lines.pdf', device = cairo_pdf, width = 4, height = 4)
+#ggsave('figures/pco2_diurnal_seasons_Lines.png', type = 'cairo', width = 4, height = 4)
 ```
 
 # pH Graphics by Season
@@ -392,7 +406,7 @@ diurnal_data <- all_data %>%
 
 ## Run the GAMM
 
-The following takes \~ 7 minutes.
+The following takes \~ 5 minutes.
 
 ``` r
 system.time(ph_gam <- gamm(ph_res ~  s(hh, by = Season, bs='cc', k=6),
@@ -401,7 +415,7 @@ system.time(ph_gam <- gamm(ph_res ~  s(hh, by = Season, bs='cc', k=6),
 ```
 
     ##    user  system elapsed 
-    ##  339.64   97.32  451.50
+    ##  197.95   40.66  238.64
 
 ## Generate Predictions from the Model
 
@@ -437,8 +451,8 @@ ggplot(newdat, aes(x=hh, y=pred, color = Season)) + #geom_line() +
 ![](Revised_Graphics_Diurnal_files/figure-gfm/ribbon_ph-1.png)<!-- -->
 
 ``` r
-ggsave('ph_diurnal_seasons.pdf', device = cairo_pdf, width = 4, height = 4)
-ggsave('ph_diurnal_seasons.png', type = 'cairo', width = 4, height = 4)
+ggsave('figures/ph_diurnal_seasons.pdf', device = cairo_pdf, width = 4, height = 4)
+#ggsave('figures/ph_diurnal_seasons.png', type = 'cairo', width = 4, height = 4)
 ```
 
 ## Alternate Graphic with Lines
@@ -459,6 +473,6 @@ ggplot(newdat, aes(x=hh, y=pred, color = Season)) + #geom_line() +
 ![](Revised_Graphics_Diurnal_files/figure-gfm/lines_ph-1.png)<!-- -->
 
 ``` r
-ggsave('ph_diurnal_seasons_lines.pdf', device = cairo_pdf, width = 4, height = 4)
-ggsave('ph_diurnal_seasons_Lines.png', type = 'cairo', width = 4, height = 4)
+ggsave('figures/ph_diurnal_seasons_lines.pdf', device = cairo_pdf, width = 4, height = 4)
+#ggsave('figures/ph_diurnal_seasons_Lines.png', type = 'cairo', width = 4, height = 4)
 ```

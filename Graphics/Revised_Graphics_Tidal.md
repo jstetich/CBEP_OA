@@ -2,6 +2,8 @@ Analysis of Casco Bay OA data through 2018 – Revised Tidal Graphics
 ================
 Curtis C. Bohlen, Casco Bay Estuary Partnership
 
+  - [WARNING: This Notebook Takes a Long Time to
+    Run](#warning-this-notebook-takes-a-long-time-to-run)
   - [Introduction](#introduction)
   - [Load Libraries](#load-libraries)
       - [Generate color palette](#generate-color-palette)
@@ -9,7 +11,7 @@ Curtis C. Bohlen, Casco Bay Estuary Partnership
       - [Establish Folder References](#establish-folder-references)
       - [Read Data](#read-data)
   - [Prepare Tidal Data](#prepare-tidal-data)
-      - [Establish REvised Folder
+      - [Establish Revised Folder
         References](#establish-revised-folder-references)
       - [Load Tides Data](#load-tides-data)
       - [Data Correction](#data-correction)
@@ -38,6 +40,15 @@ Curtis C. Bohlen, Casco Bay Estuary Partnership
     src="https://www.cascobayestuary.org/wp-content/uploads/2014/04/logo_sm.jpg"
     style="position:absolute;top:10px;right:50px;" />
 
+# WARNING: This Notebook Takes a Long Time to Run
+
+Several complex models take between five and fifteen minutes each to
+run, so “RUN All” OR “knit” may take twenty minutes or more to run. The
+code is designed to “cache” results after it has been “knit” once, so
+that is principally a problem if you run the code in this notebook
+directly, change the data or model specifications between “knits”, or if
+you delete the cache files from your computer.
+
 # Introduction
 
 This notebook and related notebooks document analysis of data derived
@@ -60,14 +71,14 @@ report.
 library(tidyverse)  # includes readr, readxl
 ```
 
-    ## -- Attaching packages ----------------------------------------------------------------------------------------------------- tidyverse 1.3.0 --
+    ## -- Attaching packages ---------------------------------------------------------------------- tidyverse 1.3.0 --
 
     ## v ggplot2 3.3.2     v purrr   0.3.4
-    ## v tibble  3.0.3     v dplyr   1.0.0
-    ## v tidyr   1.1.0     v stringr 1.4.0
+    ## v tibble  3.0.3     v dplyr   1.0.2
+    ## v tidyr   1.1.2     v stringr 1.4.0
     ## v readr   1.3.1     v forcats 0.5.0
 
-    ## -- Conflicts -------------------------------------------------------------------------------------------------------- tidyverse_conflicts() --
+    ## -- Conflicts ------------------------------------------------------------------------- tidyverse_conflicts() --
     ## x dplyr::filter() masks stats::filter()
     ## x dplyr::lag()    masks stats::lag()
 
@@ -95,7 +106,7 @@ library(mgcv)
     ## 
     ##     collapse
 
-    ## This is mgcv 1.8-31. For overview type 'help("mgcv-package")'.
+    ## This is mgcv 1.8-33. For overview type 'help("mgcv-package")'.
 
 ``` r
 library(CBEPgraphics)
@@ -126,6 +137,8 @@ sibling  <- file.path(parent,sibfldnm)
 
 fn    <- 'CascoBayOAData.csv'
 fpath <- file.path(sibling,fn)
+
+dir.create(file.path(getwd(), 'figures'), showWarnings = FALSE)
 ```
 
 The following loads existing data, including a “temperature corrected”
@@ -188,7 +201,7 @@ all_data <- read_csv(fpath,
 
 # Prepare Tidal Data
 
-## Establish REvised Folder References
+## Establish Revised Folder References
 
 ``` r
 sibfldnm <- 'Original_Data'
@@ -350,7 +363,7 @@ system.time(pco2_gam <- gamm(co2_corr_res ~  s(minssincehigh, by = Season, bs='c
 ```
 
     ##    user  system elapsed 
-    ##  820.92  259.59 1162.64
+    ##  495.26  106.71  602.17
 
 ### Generate Predictions from the Model
 
@@ -390,8 +403,8 @@ ggplot(newdat, aes(x=minssincehigh, y=pred, color = Season)) + #geom_line() +
 ![](Revised_Graphics_Tidal_files/figure-gfm/co2_ribbon-1.png)<!-- -->
 
 ``` r
-ggsave('pco2_tidal_seasons.pdf', device = cairo_pdf, width = 4, height = 4)
-ggsave('pco2_tidal_seasons.png', type = 'cairo', width = 4, height = 4)
+ggsave('figures/pco2_tidal_seasons.pdf', device = cairo_pdf, width = 4, height = 4)
+#ggsave('figures/pco2_tidal_seasons.png', type = 'cairo', width = 4, height = 4)
 ```
 
 ### Alternate Graphic with Lines
@@ -416,8 +429,8 @@ ggplot(newdat, aes(x=minssincehigh, y=pred)) +
 ![](Revised_Graphics_Tidal_files/figure-gfm/co2_lines-1.png)<!-- -->
 
 ``` r
-ggsave('pco2_tidal_seasons_lines.pdf', device = cairo_pdf, width = 4, height = 4)
-ggsave('pco2_tidal_seasons_Lines.png', type = 'cairo', width = 4, height = 4)
+ggsave('figures/pco2_tidal_seasons_lines.pdf', device = cairo_pdf, width = 4, height = 4)
+#ggsave('figures/pco2_tidal_seasons_Lines.png', type = 'cairo', width = 4, height = 4)
 ```
 
 ## pH GAMM Model with Autocorrelation
@@ -432,7 +445,7 @@ system.time(ph_gam <- gamm(ph_res ~  s(minssincehigh, by = Season, bs='cc', k=6)
 ```
 
     ##    user  system elapsed 
-    ##  279.92   84.78  367.77
+    ##  186.48   38.57  225.13
 
 ### Generate Predictions from the Model
 
@@ -472,8 +485,8 @@ ggplot(newdat, aes(x=minssincehigh, y=pred, color = Season)) +
 ![](Revised_Graphics_Tidal_files/figure-gfm/ph_ribbon-1.png)<!-- -->
 
 ``` r
-ggsave('ph_tidal_seasons.pdf', device = cairo_pdf, width = 4, height = 4)
-ggsave('ph_tidal_seasons.png', type = 'cairo', width = 4, height = 4)
+ggsave('figures/ph_tidal_seasons.pdf', device = cairo_pdf, width = 4, height = 4)
+#ggsave('figures/ph_tidal_seasons.png', type = 'cairo', width = 4, height = 4)
 ```
 
 ### Alternate Graphic with Lines
@@ -498,6 +511,6 @@ ggplot(newdat, aes(x=minssincehigh, y=pred)) +
 ![](Revised_Graphics_Tidal_files/figure-gfm/ph_lines-1.png)<!-- -->
 
 ``` r
-ggsave('ph_tidal_seasons_lines.pdf', device = cairo_pdf, width = 4, height = 4)
-ggsave('ph_tidal_seasons_Lines.png', type = 'cairo', width = 4, height = 4)
+ggsave('figures/ph_tidal_seasons_lines.pdf', device = cairo_pdf, width = 4, height = 4)
+#ggsave('figures/ph_tidal_seasons_Lines.png', type = 'cairo', width = 4, height = 4)
 ```

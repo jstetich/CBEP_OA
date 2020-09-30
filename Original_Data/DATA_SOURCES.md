@@ -21,9 +21,9 @@ Dissolved oxygen, temperature,       | Aanderaa Oxygen
 percent saturation                   | Optode
 -------------------------------------|-----------------
 
-Data was pre-processed by Chris Hunt, at UNH using standard analysis acripts to remove data collected before andafter deployments, and calcualte derived oA paramers (like carbonate saturation. 
+Data was pre-processed by Chris Hunt, at UNH using standard analysis scripts to remove data collected before and after deployments, and calculate derived oA parameters (like carbonate saturation. 
 
-For more details on instrumentation, deployments, data manipulation, etc. request a copy of the related QAuality Assurance Project Plan from CBEP, or see 
+For more details on instrumentation, deployments, data manipulation, etc. request a copy of the related Quality Assurance Project Plan (QAPP) from CBEP, or see 
  **NEED REFS TO EPA REPORTS OR CBEP REPORTS ONLINE**
 
 ## Data Provenance
@@ -31,7 +31,7 @@ All data files analyzed here were received in an e-mail From Matt Liebman, sent 
 
 The ZIP file contains original data as received, the other files were directly unzipped from there.
 
-Weather data and tides data provide additional context for the OA observations. Additional DATA_SOURCES_.md files are contained wwithin the sub-folders, documenting where those data were sourced.
+Weather data and tides data provide additional context for the OA observations. Additional DATA_SOURCES_.md files are contained within the sub-folders, documenting where those data were sourced.
 
 Note that these data are a superset of data shared by Chris Hunt (of UNH) in 2020
 

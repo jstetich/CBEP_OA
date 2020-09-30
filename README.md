@@ -36,7 +36,7 @@ pH (Total pH scale) and temperature  | Satlantic SeaFET  |
 Dissolved oxygen, temperature, percent saturation | Aanderaa Oxygen Optode _ 
 
 
-All data was pre-processed by Chris Hunt, at UNH, using analysis scripts to clean and reorganize the data as well as  calculate derived OA parameters like carbonate saturation. 
+All data was pre-processed by Chris Hunt, at UNH, using analysis scripts to clean and reorganize the data as well as calculate derived OA parameters like carbonate saturation. 
 
 For more details on instrumentation, deployments, data management, etc. request a copy of the related Quality Assurance Project Plan (QAPP) from CBEP.
 

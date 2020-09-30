@@ -12,6 +12,13 @@ output:
     src="https://www.cascobayestuary.org/wp-content/uploads/2014/04/logo_sm.jpg"
     style="position:absolute;top:10px;right:50px;" />
 
+# WARNING: This Notebook Takes a Long Time to Run
+Several complex models take between five and fifteen minutes each to run, so
+"RUN All" OR "knit" may take twenty minutes or more to run.  The code is
+designed to "cache" results after it has been "knit" once, so that is
+principally a problem if you run the code in this notebook directly, change the
+data or model specifications between "knits", or if you delete the cache files
+from your computer.
 
 # Introduction
 This notebook and related notebooks document analysis of data derived from a multi-year deployment of ocean acidification monitoring equipment at the Southern Maine Community College pier, in South Portland.
@@ -50,6 +57,8 @@ sibling  <- file.path(parent,sibfldnm)
 
 fn    <- 'CascoBayOAData.csv'
 fpath <- file.path(sibling,fn)
+
+dir.create(file.path(getwd(), 'figures'), showWarnings = FALSE)
 ```
 
 The following loads existing data, including a "temperature corrected" pCO2 value based on Takehashi et al. 2002. It then collapses that data to daily summaries.
@@ -105,7 +114,7 @@ all_data <- read_csv(fpath,
 
 
 # Prepare Tidal Data
-## Establish REvised Folder References
+## Establish Revised Folder References
 ```{r folder_refs_2}
 sibfldnm <- 'Original_Data'
 subfolder <- 'Tides_Data'
@@ -265,8 +274,8 @@ ggplot(newdat, aes(x=minssincehigh, y=pred, color = Season)) + #geom_line() +
   xlab('Hours since High Tide') +
   ylab(expression (atop(Corrected~pCO[2]~(mu*Atm), Difference~From~Tide~Cycle~Average)))
 
-ggsave('pco2_tidal_seasons.pdf', device = cairo_pdf, width = 4, height = 4)
-ggsave('pco2_tidal_seasons.png', type = 'cairo', width = 4, height = 4)
+ggsave('figures/pco2_tidal_seasons.pdf', device = cairo_pdf, width = 4, height = 4)
+#ggsave('figures/pco2_tidal_seasons.png', type = 'cairo', width = 4, height = 4)
 ```
 
 ### Alternate Graphic with Lines
@@ -286,8 +295,8 @@ ggplot(newdat, aes(x=minssincehigh, y=pred)) +
   xlab('Hours Since High Tide') +
   ylab(expression (atop(Corrected~pCO[2]~(mu*Atm), Difference~From~Tide~Cycle~Average)))
 
-ggsave('pco2_tidal_seasons_lines.pdf', device = cairo_pdf, width = 4, height = 4)
-ggsave('pco2_tidal_seasons_Lines.png', type = 'cairo', width = 4, height = 4)
+ggsave('figures/pco2_tidal_seasons_lines.pdf', device = cairo_pdf, width = 4, height = 4)
+#ggsave('figures/pco2_tidal_seasons_Lines.png', type = 'cairo', width = 4, height = 4)
 
 ```
 
@@ -329,8 +338,8 @@ ggplot(newdat, aes(x=minssincehigh, y=pred, color = Season)) +
   xlab('Hours since High Tide') +
   ylab(expression (atop(pH, Difference~From~Tide~Cycle~Average)))
   
-ggsave('ph_tidal_seasons.pdf', device = cairo_pdf, width = 4, height = 4)
-ggsave('ph_tidal_seasons.png', type = 'cairo', width = 4, height = 4)
+ggsave('figures/ph_tidal_seasons.pdf', device = cairo_pdf, width = 4, height = 4)
+#ggsave('figures/ph_tidal_seasons.png', type = 'cairo', width = 4, height = 4)
 ```
 
 ### Alternate Graphic with Lines
@@ -350,7 +359,7 @@ ggplot(newdat, aes(x=minssincehigh, y=pred)) +
   xlab('Hours Since High Tide') +
   ylab(expression (atop(pH, Difference~From~Tide~Cycle~Average)))
 
-ggsave('ph_tidal_seasons_lines.pdf', device = cairo_pdf, width = 4, height = 4)
-ggsave('ph_tidal_seasons_Lines.png', type = 'cairo', width = 4, height = 4)
+ggsave('figures/ph_tidal_seasons_lines.pdf', device = cairo_pdf, width = 4, height = 4)
+#ggsave('figures/ph_tidal_seasons_Lines.png', type = 'cairo', width = 4, height = 4)
 ```
 

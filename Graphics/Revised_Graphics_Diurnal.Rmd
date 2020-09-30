@@ -12,13 +12,29 @@ output:
     src="https://www.cascobayestuary.org/wp-content/uploads/2014/04/logo_sm.jpg"
     style="position:absolute;top:10px;right:50px;" />
 
+# WARNING: This Notebook Takes a Long Time to Run
+Several complex models take between five and fifteen minutes each to run, so
+"RUN All" OR "knit" may take twenty minutes or more to run.  The code is
+designed to "cache" results after it has been "knit" once, so that is
+principally a problem if you run the code in this notebook directly, change the
+data or model specifications between "knits", or if you delete the cache files
+from your computer.
 
 # Introduction
-This notebook and related notebooks document analysis of data derived from a multi-year deployment of ocean acidification monitoring equipment at the Southern Maine Community College pier, in South Portland.
+This notebook and related notebooks document analysis of data derived from a
+multi-year deployment of ocean acidification monitoring equipment at the
+Southern Maine Community College pier, in South Portland.
 
-The monitoring set up was designed and operated by Joe Kelly, of UNH and his colleagues, on behalf of the Casco Bay Estuary Partnership.  This was one of the first long-term OA monitoring facilities in the northeast, and was intended to test available technologies as well as gain operational experience working with acidification monitoring.
+The monitoring set up was designed and operated by Joe Kelly, of UNH and his
+colleagues, on behalf of the Casco Bay Estuary Partnership.  This was one of the
+first long-term OA monitoring facilities in the northeast, and was intended to
+test available technologies as well as gain operational experience working with
+acidification monitoring.
 
-In this Notebook, we develop graphics looking at diurnal patterns of pCO~2~ and pH, for Casco Bay Estuary partnership's 2020 State of the Bay report.  Companion R Notebooks in the Analysis Folder look in greater detail at model selection and uncertainty.
+In this Notebook, we develop graphics looking at diurnal patterns of pCO~2~ and
+pH, for Casco Bay Estuary partnership's 2020 State of the Bay report.  Companion
+R Notebooks in the Analysis Folder look in greater detail at model selection and
+uncertainty.
 
 
 # Load Libraries
@@ -41,7 +57,9 @@ season_palette = c(cbep_colors()[1],
 ```
 
 # Load Data 
-The following code loads data already cleaned and reorganized, via the "Data_Review_And_Filtering" R Notebook.  The data includes a "temperature corrected" pCO2 value based on Takehashi et al. 2002.
+The following code loads data already cleaned and reorganized, via the
+"Data_Review_And_Filtering" R Notebook.  The data includes a "temperature
+corrected" pCO2 value based on Takehashi et al. 2002.
 
 > Takahashi, Taro & Sutherland, Stewart & Sweeney, Colm & Poisson, Alain &
 > Metzl, Nicolas & Tilbrook, Bronte & Bates, Nicholas & Wanninkhof, Rik & Feely,
@@ -50,7 +68,8 @@ The following code loads data already cleaned and reorganized, via the "Data_Rev
 > biological and temperature effects. Deep Sea Research Part II: Topical Studies
 > in Oceanography. 49. 1601-1622. 10.1016/S0967-0645(02)00003-6.
 
-(See the "Data_Review_And_Filtering" R Notebook for details on why and how we calculated temperature-corrected pCO2 values.)  
+(See the "Data_Review_And_Filtering" R Notebook for details on why and how we
+calculated temperature-corrected pCO2 values.)
 
 ## Establish Folder References
 ```{r folder_refs}
@@ -60,20 +79,41 @@ sibling  <- file.path(parent,sibfldnm)
 
 fn    <- 'CascoBayOAData.csv'
 fpath <- file.path(sibling,fn)
+
+dir.create(file.path(getwd(), 'figures'), showWarnings = FALSE)
 ```
 
 ## Dealing with Time Zones
-Note that the original time coordinate in the data received from UNH was in UTC, not local time. But read_csv() interprets times according to the locale, here Eastern Standard Time or Eastern Daylight Time, depending on time of year.  I have not found an easy way to alter that behavior in read_csv(), but the force_tz() function from lubridate can fix it.
+Note that the original time coordinate in the data received from UNH was in UTC,
+not local time. But read_csv() interprets times according to the locale, here
+Eastern Standard Time or Eastern Daylight Time, depending on time of year.  I
+have not found an easy way to alter that behavior in read_csv(), but the
+force_tz() function from lubridate can fix it.
 
-The primary reason we would want to correct the time coordinate to local time is that some version of local time is more appropriate for graphics showing the effect of time of day on acidification parameters.  it is also important to make sure that as we work with other external data sources (e.g., tides, river discharge or weather) that all data uses the same time coordinate.
+The primary reason we would want to correct the time coordinate to local time is
+that some version of local time is more appropriate for graphics showing the
+effect of time of day on acidification parameters.  it is also important to make
+sure that as we work with other external data sources (e.g., tides, river
+discharge or weather) that all data uses the same time coordinate.
 
 Note the series of datetime transformations here:  
 
-1. The datetime is generated on import assuming (implicitly) local time zone, which is incorrect. Our original data was in UTC.
+1. The datetime is generated on import assuming (implicitly) local time zone,
+which is incorrect. Our original data was in UTC.
 
-2. The internal representation of the datetime object (POSIXct) is in seconds since the beginning of 1970, at Greenwich (GMT or UTC), so it is independent of timezone.  The 'tzone' attribute determines how that time is represented externally, not how it is stored internally.  So, if we  just change the 'tzone' attribute, we only change the external representation of the (still incorrect) time that resulted from reading the data in with read_csv(). That would just lead to greater confusion. We need to change the INTERNAL representation of the time (as a number) while we also change the 'tzone' attribute.  That is what lubridate's force_tz() function does.
+2. The internal representation of the datetime object (POSIXct) is in seconds
+since the beginning of 1970, at Greenwich (GMT or UTC), so it is independent of
+timezone.  The 'tzone' attribute determines how that time is represented
+externally, not how it is stored internally.  So, if we  just change the 'tzone'
+attribute, we only change the external representation of the (still incorrect)
+time that resulted from reading the data in with read_csv(). That would just
+lead to greater confusion. We need to change the INTERNAL representation of the
+time (as a number) while we also change the 'tzone' attribute.  That is what
+lubridate's force_tz() function does.
 
-3.  Finally, we need to convert to local time.  Here, we can just change the 'tzone' attribute. (We use the structure() function for its convenience is a tidyverse pipeline.)
+3.  Finally, we need to convert to local time.  Here, we can just change the
+'tzone' attribute. (We use the structure() function for its convenience in a
+tidyverse pipeline.)
 
 ## Read the Data
 ```{r load_data} 
@@ -120,11 +160,15 @@ all_data <- read_csv(fpath,
 ```
 
 ## Confirm Timezone Corrections
-We quickly confirm that our efforts to adjust time coordiates had the intended effect.
+We quickly confirm that our efforts to adjust time coordinates had the intended
+effect.
 
-We compare UTC, local standard time (UTC - 5 hours) and local time (including daylight savings time.)  For April, standard time should be five hours "behind" UTC, while local time is in daylight savings, so should be four hours behind. 
+We compare UTC, local standard time (UTC - 5 hours) and local time (including
+daylight savings time.)  For April, standard time should be five hours "behind"
+UTC, while local time is in daylight savings, so should be four hours behind.
 
-The first timestamp in the CSV file ('CascoBayOAData.csv') is 2015-4-23	15:00 (in UTC).
+The first time stamp in the CSV file ('CascoBayOAData.csv') is 2015-4-23	15:00
+(in UTC).
 ```{r small_test}
 knitr::kable(all_data %>%
   select(datetime, stdtime, localtime) %>% 
@@ -133,9 +177,13 @@ knitr::kable(all_data %>%
   head())
 ```
 Note that:  
-1.  The first value of datetime matches the timestamp (in UTM) from the CSV file.  
-2.  The internal representation of the three different times remains the same, but the text representation differs.  
-3.  As required, stdtime is five hours behind datetime and localtime is four hours behind, as required. 
+
+1.  The first value of datetime matches the time stamp (in UTM) from the CSV
+    file.  
+2.  The internal representation of the three different times remains the same,
+    but the text representation differs.  
+3.  As required, std time is five hours behind datetime and local time is four
+    hours behind. 
 
 # pCO~2~ Graphics (Temperature Corrected) by Season
 ## Calculate pCO~2~ Deviations
@@ -165,7 +213,9 @@ diurnal_data <- all_data %>%
 ```
 
 ## Run the GAMM
-The following takes ~ 15 minutes on a lightly loaded computer (Windows 10, 64 bit, Intel i5 processor, 2.4 GHz), and as long as 25 minutes when the machine had lots of other things going on.  
+The following takes ~ 8 minutes on a lightly loaded computer (Windows 10, 64
+bit, Intel i7 processor, 2.4 GHz), and as long as 25 minutes when the machine
+had lots of other things going on.  
 ```{r gamm_pco2, cache = TRUE} 
 system.time(pco2_gam <- gamm(co2_corr_res ~  s(hh, by = Season, bs='cc', k=6),
                  correlation = corAR1(form = ~ 1 | Season),  # we run out of memory if we don't use a grouping
@@ -182,7 +232,8 @@ newdat <- newdat %>%
 ```
 
 ## Create Ribbon Graphic
-The ribbon plot shows approximate 95% confidence intervals for the GAMM fits by season.
+The ribbon plot shows approximate 95% confidence intervals for the GAMM fits by
+season.
 ```{r co2_ribbon, fig.width = 4, fig.height = 4}
 ggplot(newdat, aes(x=hh, y=pred, color = Season)) + #geom_line() +
   geom_ribbon(aes(ymin = pred-(1.96*se),
@@ -198,8 +249,8 @@ ggplot(newdat, aes(x=hh, y=pred, color = Season)) + #geom_line() +
   xlab('Hour of Day') +
   ylab(expression (atop(Corrected~pCO[2]~(mu*Atm), Difference~From~Daily~Average)))
 
-ggsave('pco2_diurnal_seasons.pdf', device = cairo_pdf, width = 4, height = 4)
-ggsave('pco2_diurnal_seasons.png', type = 'cairo', width = 4, height = 4)
+ggsave('figures/pco2_diurnal_seasons.pdf', device = cairo_pdf, width = 4, height = 4)
+#ggsave('figures/pco2_diurnal_seasons.png', type = 'cairo', width = 4, height = 4)
 ```
 
 ## Alternate Graphic with Lines
@@ -215,8 +266,8 @@ ggplot(newdat, aes(x=hh, y=pred)) +
   xlab('Hour of Day') +
   ylab(expression (atop(Corrected~pCO[2]~(mu*Atm), Difference~From~Daily~Average)))
 
-ggsave('pco2_diurnal_seasons_lines.pdf', device = cairo_pdf, width = 4, height = 4)
-ggsave('pco2_diurnal_seasons_Lines.png', type = 'cairo', width = 4, height = 4)
+ggsave('figures/pco2_diurnal_seasons_lines.pdf', device = cairo_pdf, width = 4, height = 4)
+#ggsave('figures/pco2_diurnal_seasons_Lines.png', type = 'cairo', width = 4, height = 4)
 
 ```
 
@@ -249,7 +300,7 @@ diurnal_data <- all_data %>%
 ```
 
 ## Run the GAMM
-The following takes ~ 7 minutes.
+The following takes ~ 5 minutes.
 ```{r gamm_ph, cache = TRUE} 
 system.time(ph_gam <- gamm(ph_res ~  s(hh, by = Season, bs='cc', k=6),
                  correlation = corAR1(form = ~ 1 | Season),  # we run out of memory if we don't use a grouping
@@ -267,7 +318,8 @@ newdat <- newdat %>%
 ```
 
 ## Create Ribbon Graphic
-The ribbon plots show approximate 95% confidence intervals for the GAMM fit by season.
+The ribbon plots show approximate 95% confidence intervals for the GAMM fit by
+season.
 ```{r ribbon_ph, fig.width = 4, fig.height = 4}
 ggplot(newdat, aes(x=hh, y=pred, color = Season)) + #geom_line() +
   geom_ribbon(aes(ymin = pred-(1.96*se),
@@ -282,8 +334,8 @@ ggplot(newdat, aes(x=hh, y=pred, color = Season)) + #geom_line() +
   
   xlab('Hour of Day') +
   ylab(expression (atop(Corrected~pCO[2]~(mu*Atm), Difference~From~Daily~Average)))
-ggsave('ph_diurnal_seasons.pdf', device = cairo_pdf, width = 4, height = 4)
-ggsave('ph_diurnal_seasons.png', type = 'cairo', width = 4, height = 4)
+ggsave('figures/ph_diurnal_seasons.pdf', device = cairo_pdf, width = 4, height = 4)
+#ggsave('figures/ph_diurnal_seasons.png', type = 'cairo', width = 4, height = 4)
 ```
 
 
@@ -299,8 +351,8 @@ ggplot(newdat, aes(x=hh, y=pred, color = Season)) + #geom_line() +
   
   xlab('Hour of Day') +
   ylab(expression (atop(Corrected~pCO[2]~(mu*Atm), Difference~From~Daily~Average)))
-ggsave('ph_diurnal_seasons_lines.pdf', device = cairo_pdf, width = 4, height = 4)
-ggsave('ph_diurnal_seasons_Lines.png', type = 'cairo', width = 4, height = 4)
+ggsave('figures/ph_diurnal_seasons_lines.pdf', device = cairo_pdf, width = 4, height = 4)
+#ggsave('figures/ph_diurnal_seasons_Lines.png', type = 'cairo', width = 4, height = 4)
 
 ```
 

@@ -14,11 +14,19 @@ output:
 
 
 # Introduction
-This notebook and related notebooks document exploratory data analysis of data derived from a multi-year deployment of ocean acidification monitoring equipment at the Southern Maine Community College pier, in South Portland.
+This notebook and related notebooks document exploratory data analysis of data
+derived from a multi-year deployment of ocean acidification monitoring equipment
+at the Southern Maine Community College pier, in South Portland.
 
-The monitoring set up was designed and operated by Joe Kelly, of UNH and his colleagues, on behalf of the Casco Bay Estuary Partnership.  This was one of the first long-term OA monitoring facilities in the northeast, and was intended to test available technologies as well as gain operational experience working with acidification monitoring.
+The monitoring set up was designed and operated by Joe Kelly, of UNH and his
+colleagues, on behalf of the Casco Bay Estuary Partnership.  This was one of the
+first long-term OA monitoring facilities in the northeast, and was intended to
+test available technologies as well as gain operational experience working with
+acidification monitoring.
 
-In this Notebook, we develop the primary graphics used to examine acidification in Casco Bay Estuary partnership's 2020 State of the Bay report.
+In this Notebook, we develop revised versions of the primary graphics used to
+examine acidification in Casco Bay Estuary partnership's 2020 State of the Bay
+report, along with related graphics that wqe did not end up using in the report.
 
 # Load Libraries
 ```{r load_libraries}
@@ -32,17 +40,22 @@ library(RColorBrewer)
 #display.brewer.all(n=9, type="seq", exact.n=TRUE, colorblindFriendly = TRUE)
 ```
 
-# Generate color palettes
+# Generate Color Palettes
 ## Monthly
-To display data by months in complex graphics, we want a 12 item sequential color palette that's color-blind / reproduction friendly.
+To display data by months in complex graphics, we want a 12 item sequential
+color palette that's color-blind and reproduction friendly.
 
-The rColorBrewer colorRampPalette() function creates a FUNCTION that takes the number of colors, and returns a suitable color ramp, based on another (usually shorter) color ramp.  Note getPalette is a FUNCTION.  We'll use this function later to generate the colors we want on the fly.
+The rColorBrewer colorRampPalette() function creates a FUNCTION that takes the
+number of colors, and returns a suitable color ramp, based on another (usually
+shorter) color ramp.  Note getPalette is a FUNCTION.  We'll use this function
+later to generate the colors we want on the fly.
 ```{r palette}
-getPalette = colorRampPalette(brewer.pal(9, "YlGnBu")[2:9])  # generates a palette function from an existing color ramp
+# generates a palette function from an existing color ramp
+getPalette = colorRampPalette(brewer.pal(9, "YlGnBu")[2:9])  
 ```
 
 ## Seasonal
-This is just a list, not function like cbep_colors().
+This is just a list, not a function like cbep_colors().
 ```{r}
 season_palette = c(cbep_colors()[1],
                     cbep_colors()[4],
@@ -65,21 +78,27 @@ sibling  <- file.path(parent,sibfldnm)
 
 fn    <- 'CascoBayOAData.csv'
 fpath <- file.path(sibling,fn)
+
+dir.create(file.path(getwd(), 'figures'), showWarnings = FALSE)
 ```
 
-The following loads existing data, including a "temperature corrected" pCO2 value based on Takehashi et al. 2002. It then collapses that data to daily summaries.
+The following loads existing data, including a "temperature corrected" pCO~2~
+value based on Takehashi et al. 2002. It then collapses that data to daily
+summaries.
 
 > Takahashi, Taro & Sutherland, Stewart & Sweeney, Colm & Poisson, Alain &
 > Metzl, Nicolas & Tilbrook, Bronte & Bates, Nicholas & Wanninkhof, Rik & Feely,
 > Richard & Chris, Sabine & Olafsson, Jon & Nojiri, Yukihiro. (2002). Global
-> sea-air CO2 flux based on climatological surface ocean pCO2, and seasonal
+> sea-air CO2 flux based on climatological surface ocean pCO~2~, and seasonal
 > biological and temperature effects. Deep Sea Research Part II: Topical Studies
 > in Oceanography. 49. 1601-1622. 10.1016/S0967-0645(02)00003-6.
 
-(See the "Data_Review_And_Filtering" R Notebook for details on why and how we calculated temperature-corrected pCO2 values.)
+(See the "Data_Review_And_Filtering" R Notebook for details on why and how we
+calculated temperature-corrected pCO~2~ values.)
 
 ## Read Data
-Note this version adjusts dates and times for Eastern Standard Time. It also assigns each observation to a season based on month of the year.
+Note this version adjusts dates and times for Eastern Standard Time. It also
+assigns each observation to a season based on month of the year.
 ```{r load_data} 
 all_data <- read_csv(fpath,
                      col_types = cols(dd = col_integer(), 
@@ -118,16 +137,16 @@ all_data <- read_csv(fpath,
 
 
 # Seasonal Profiles
+Only two changes here compared to the draft graphics:
 
-Only two changes here:
-1.  The colors have been reordered to simplify making the colors correspond to the same years as in the FOCB graphics and
+1.  The colors have been reordered to simplify making the colors correspond to
+    the same years as in the FOCB graphics and
 2.  The Y axis Legend has been simplified slightly.
-## Set Color Sequence
 
-
-## Temperature Corrected pCO2
+## Temperature Corrected pCO~2~
 ```{r pc02_by_doy,fig.width = 7, fig.height = 5}
-plt <- ggplot(all_data, aes(doy, co2_corr)) + geom_point(aes(color = factor(yyyy)), alpha = 0.1) +
+plt <- ggplot(all_data, aes(doy, co2_corr)) +
+  geom_point(aes(color = factor(yyyy)), alpha = 0.1) +
   
   xlab('') +
   ylab(expression (Corrected~pCO[2]~(mu*Atm))) +
@@ -137,8 +156,8 @@ plt <- ggplot(all_data, aes(doy, co2_corr)) + geom_point(aes(color = factor(yyyy
   theme_cbep() +
   theme(axis.text.x=element_text(angle=90, vjust = 1.5))
 plt
-ggsave('pco2Seasonal_cbep_2.png', type = 'cairo', width = 7, height = 5)
-ggsave('pco2Seasonal_cbep_2.pdf', device=cairo_pdf, width = 7, height = 5)
+# ggsave('figures/pco2Seasonal_cbep_2.png', type = 'cairo', width = 7, height = 5)
+ggsave('figures/pco2Seasonal_cbep_2.pdf', device=cairo_pdf, width = 7, height = 5)
 ```
 
 
@@ -156,13 +175,14 @@ plt <- ggplot(all_data, aes(doy, ph)) + geom_point(aes(color = factor(yyyy)),alp
   theme_cbep() +
   theme(axis.text.x=element_text(angle=90, vjust = 1.5))
 plt
-ggsave('phSeasonal_cbep.png', type = 'cairo', width = 7, height = 5)
-ggsave('phSeasonal_cbep.pdf', device=cairo_pdf, width = 7, height = 5)
+# ggsave('figures/phSeasonal_cbep.png', type = 'cairo', width = 7, height = 5)
+ggsave('figures/phSeasonal_cbep.pdf', device=cairo_pdf, width = 7, height = 5)
 ```
 
 ## Aragonite Saturation State
 ```{r omega_by_doy, fig.width = 7, fig.height = 5}
-plt <- ggplot(all_data, aes(doy, omega_a)) + geom_point(aes(color = factor(yyyy)), alpha = 0.1) +
+plt <- ggplot(all_data, aes(doy, omega_a)) +
+  geom_point(aes(color = factor(yyyy)), alpha = 0.1) +
   
   # geom_hline(aes(yintercept = 1.5), lty = 'dotted', color = 'gray') +
   # geom_text(aes(x=0, y=1.4, label= 'Omega = 1.5', hjust = 0), size=3) +
@@ -183,8 +203,8 @@ plt <- ggplot(all_data, aes(doy, omega_a)) + geom_point(aes(color = factor(yyyy)
   theme(axis.text.x=element_text(angle=90, vjust = 1.5))
   
 plt
-ggsave('omegaSeasonal_cbep.png', type = 'cairo', width = 7, height = 5)
-ggsave('omegaSeasonal_cbep.pdf', device=cairo_pdf, width = 7, height = 5)
+# ggsave('figures/omegaSeasonal_cbep.png', type = 'cairo', width = 7, height = 5)
+ggsave('figures/omegaSeasonal_cbep.pdf', device=cairo_pdf, width = 7, height = 5)
 
 ```
 
@@ -204,8 +224,8 @@ plt <- ggplot(all_data, aes(temp, ph)) +
 
   theme_cbep()
 plt
-#ggsave('phbytemp_monthly.png', type = 'cairo', width = 7, height = 5)
-#ggsave('phbytemp_monthly.pdf', device = cairo_pdf, width = 7, height = 5)
+#ggsave('figures/phbytemp_monthly.png', type = 'cairo', width = 7, height = 5)
+#ggsave('figures/phbytemp_monthly.pdf', device = cairo_pdf, width = 7, height = 5)
 ```
 ## Seasonal
 ```{r ph_by_temp_seasonal, fig.width = 7, fig.height = 5}
@@ -220,10 +240,10 @@ plt <- ggplot(all_data, aes(temp, ph)) +
 
   theme_cbep()
 plt
-ggsave('phbytemp_seasonal.png', type = 'cairo', width = 7, height = 5)
-ggsave('phbytemp_seasonal.pdf', device = cairo_pdf, width = 7, height = 5)
+# ggsave('figures/phbytemp_seasonal.png', type = 'cairo', width = 7, height = 5)
+ggsave('figures/phbytemp_seasonal.pdf', device = cairo_pdf, width = 7, height = 5)
 ```
-# PCO2 by Temperature  
+# pCO~2~ by Temperature  
 ## Seasonal
 ```{r pco2_by_temp, fig.width = 7, fig.height = 5}
 plt <- ggplot(all_data, aes(temp, co2_corr)) +
@@ -239,8 +259,8 @@ plt <- ggplot(all_data, aes(temp, co2_corr)) +
   theme_cbep()
   
 plt
-ggsave('pco2bytemp_seasonal.png', type = 'cairo', width = 7, height = 5)
-ggsave('pco2bytemp_Seasonal.pdf', device = cairo_pdf, width = 7, height = 5)
+# ggsave('figures/pco2bytemp_seasonal.png', type = 'cairo', width = 7, height = 5)
+ggsave('figures/pco2bytemp_Seasonal.pdf', device = cairo_pdf, width = 7, height = 5)
 ```
 
 

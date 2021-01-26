@@ -333,7 +333,7 @@ ggplot(newdat, aes(x=hh, y=pred, color = Season)) + #geom_line() +
   scale_fill_manual(values = season_palette, name = '') +
   
   xlab('Hour of Day') +
-  ylab(expression (atop(Corrected~pCO[2]~(mu*Atm), Difference~From~Daily~Average)))
+  ylab(expression (atop(pH, Difference~From~Daily~Average)))
 ggsave('figures/ph_diurnal_seasons.pdf', device = cairo_pdf, width = 4, height = 4)
 #ggsave('figures/ph_diurnal_seasons.png', type = 'cairo', width = 4, height = 4)
 ```
@@ -350,7 +350,7 @@ ggplot(newdat, aes(x=hh, y=pred, color = Season)) + #geom_line() +
   scale_color_manual(values = season_palette, name = '') +
   
   xlab('Hour of Day') +
-  ylab(expression (atop(Corrected~pCO[2]~(mu*Atm), Difference~From~Daily~Average)))
+  ylab(expression (atop(pH, Difference~From~Daily~Average)))
 ggsave('figures/ph_diurnal_seasons_lines.pdf', device = cairo_pdf, width = 4, height = 4)
 #ggsave('figures/ph_diurnal_seasons_Lines.png', type = 'cairo', width = 4, height = 4)
 

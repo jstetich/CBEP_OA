@@ -2,33 +2,33 @@ Analysis of Casco Bay OA data through 2018 – Revised Diurnal Graphics
 ================
 Curtis C. Bohlen, Casco Bay Estuary Partnership
 
-  - [WARNING: This Notebook Takes a Long Time to
+-   [WARNING: This Notebook Takes a Long Time to
     Run](#warning-this-notebook-takes-a-long-time-to-run)
-  - [Introduction](#introduction)
-  - [Load Libraries](#load-libraries)
-  - [Color Palette For Seasonal
+-   [Introduction](#introduction)
+-   [Load Libraries](#load-libraries)
+-   [Color Palette For Seasonal
     Displays](#color-palette-for-seasonal-displays)
-  - [Load Data](#load-data)
-      - [Establish Folder References](#establish-folder-references)
-      - [Dealing with Time Zones](#dealing-with-time-zones)
-      - [Read the Data](#read-the-data)
-      - [Confirm Timezone Corrections](#confirm-timezone-corrections)
-  - [pCO<sub>2</sub> Graphics (Temperature Corrected) by
+-   [Load Data](#load-data)
+    -   [Establish Folder References](#establish-folder-references)
+    -   [Dealing with Time Zones](#dealing-with-time-zones)
+    -   [Read the Data](#read-the-data)
+    -   [Confirm Timezone Corrections](#confirm-timezone-corrections)
+-   [pCO<sub>2</sub> Graphics (Temperature Corrected) by
     Season](#pco2-graphics-temperature-corrected-by-season)
-      - [Calculate pCO<sub>2</sub>
+    -   [Calculate pCO<sub>2</sub>
         Deviations](#calculate-pco2-deviations)
-      - [Run the GAMM](#run-the-gamm)
-      - [Generate Predictions from the
+    -   [Run the GAMM](#run-the-gamm)
+    -   [Generate Predictions from the
         Model](#generate-predictions-from-the-model)
-      - [Create Ribbon Graphic](#create-ribbon-graphic)
-      - [Alternate Graphic with Lines](#alternate-graphic-with-lines)
-  - [pH Graphics by Season](#ph-graphics-by-season)
-      - [Calculate pH Deviations](#calculate-ph-deviations)
-      - [Run the GAMM](#run-the-gamm-1)
-      - [Generate Predictions from the
+    -   [Create Ribbon Graphic](#create-ribbon-graphic)
+    -   [Alternate Graphic with Lines](#alternate-graphic-with-lines)
+-   [pH Graphics by Season](#ph-graphics-by-season)
+    -   [Calculate pH Deviations](#calculate-ph-deviations)
+    -   [Run the GAMM](#run-the-gamm-1)
+    -   [Generate Predictions from the
         Model](#generate-predictions-from-the-model-1)
-      - [Create Ribbon Graphic](#create-ribbon-graphic-1)
-      - [Alternate Graphic with Lines](#alternate-graphic-with-lines-1)
+    -   [Create Ribbon Graphic](#create-ribbon-graphic-1)
+    -   [Alternate Graphic with Lines](#alternate-graphic-with-lines-1)
 
 <img
     src="https://www.cascobayestuary.org/wp-content/uploads/2014/04/logo_sm.jpg"
@@ -66,14 +66,14 @@ greater detail at model selection and uncertainty.
 library(tidyverse)  # includes readr, readxl and lubridate
 ```
 
-    ## -- Attaching packages ---------------------------------------------------------------------- tidyverse 1.3.0 --
+    ## -- Attaching packages --------------------------------------- tidyverse 1.3.0 --
 
-    ## v ggplot2 3.3.2     v purrr   0.3.4
-    ## v tibble  3.0.3     v dplyr   1.0.2
+    ## v ggplot2 3.3.3     v purrr   0.3.4
+    ## v tibble  3.0.5     v dplyr   1.0.3
     ## v tidyr   1.1.2     v stringr 1.4.0
-    ## v readr   1.3.1     v forcats 0.5.0
+    ## v readr   1.4.0     v forcats 0.5.0
 
-    ## -- Conflicts ------------------------------------------------------------------------- tidyverse_conflicts() --
+    ## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
     ## x dplyr::filter() masks stats::filter()
     ## x dplyr::lag()    masks stats::lag()
 
@@ -254,7 +254,7 @@ knitr::kable(all_data %>%
 ```
 
 | datetime            | datetime\_num | stdtime             | stdtime\_num | localtime           | localtime\_num |
-| :------------------ | ------------: | :------------------ | -----------: | :------------------ | -------------: |
+|:--------------------|--------------:|:--------------------|-------------:|:--------------------|---------------:|
 | 2015-04-23 15:00:00 |    1429801200 | 2015-04-23 10:00:00 |   1429801200 | 2015-04-23 11:00:00 |     1429801200 |
 | 2015-04-23 16:00:00 |    1429804800 | 2015-04-23 11:00:00 |   1429804800 | 2015-04-23 12:00:00 |     1429804800 |
 | 2015-04-23 17:00:00 |    1429808400 | 2015-04-23 12:00:00 |   1429808400 | 2015-04-23 13:00:00 |     1429808400 |
@@ -445,7 +445,7 @@ ggplot(newdat, aes(x=hh, y=pred, color = Season)) + #geom_line() +
   scale_fill_manual(values = season_palette, name = '') +
   
   xlab('Hour of Day') +
-  ylab(expression (atop(Corrected~pCO[2]~(mu*Atm), Difference~From~Daily~Average)))
+  ylab(expression (atop(pH, Difference~From~Daily~Average)))
 ```
 
 ![](Revised_Graphics_Diurnal_files/figure-gfm/ribbon_ph-1.png)<!-- -->
@@ -467,7 +467,7 @@ ggplot(newdat, aes(x=hh, y=pred, color = Season)) + #geom_line() +
   scale_color_manual(values = season_palette, name = '') +
   
   xlab('Hour of Day') +
-  ylab(expression (atop(Corrected~pCO[2]~(mu*Atm), Difference~From~Daily~Average)))
+  ylab(expression (atop(pH, Difference~From~Daily~Average)))
 ```
 
 ![](Revised_Graphics_Diurnal_files/figure-gfm/lines_ph-1.png)<!-- -->
